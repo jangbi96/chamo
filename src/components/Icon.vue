@@ -8,8 +8,9 @@ const props = defineProps<{
   class?: string
 }>()
 
-const svgClass = computed(() => ['svg-icon', props.class].filter(Boolean).join(' '))
+  const svgClass = computed(() => ['svg-icon', props.class].filter(Boolean).join(' '))
 </script>
+
 <template>
   <svg :class="svgClass" aria-hidden="true">
     <use :xlink:href="`#icon-${name}`" />

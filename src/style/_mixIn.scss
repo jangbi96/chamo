@@ -1,0 +1,69 @@
+@function flexFn($str: center) {
+    @if ($str == center) {
+        @return center;
+    }
+    @if ($str == "sb") {
+        @return space-between;
+    }
+    @if ($str == end) {
+        @return flex-end;
+    }
+    @if ($str == start) {
+        @return flex-start;
+    }
+}
+
+@mixin flex($j: center, $a: center) {
+    display: flex ;
+    justify-content: flexFn($j);
+    align-items: flexFn($a);
+}
+
+@mixin font-style($size: 18) {
+    font-size: #{$size}px;
+    letter-spacing:  #{$size * -0.02}px ;
+  }
+  
+
+
+  @mixin pos-center() {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+@mixin pos-center-y() {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+}
+@mixin pos-center-x() {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+
+@mixin size($width, $height: $width) {
+    width: $width;
+    height: $height;
+}
+
+
+@function responseFn($media) {
+    @if ($media == T) {
+        @return 1280;
+    }
+
+    @if ($media == M) {
+        @return 768;
+    }
+
+    @return $media;
+}
+
+@mixin resize($size: T) {
+    @media screen and (max-width: #{responseFn($size)}px) {
+        @content;
+    }
+}

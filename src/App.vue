@@ -15,6 +15,5 @@ import { RouterLink, RouterView } from 'vue-router'
 
 <style scoped lang="scss">
 .contents-wrap {
-    padding-top: 72px;
 }
 </style>

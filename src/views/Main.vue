@@ -116,7 +116,7 @@ function showMessage() {
             <template v-if="startMission">
                 <input type="text" class="input" />
                 <button class="change">미션 상품 변경</button>
-                <button class="start" @click="startMission = true">
+                <button class="send" @click="startMission = true">
                     정답 제출
                 </button>
             </template>
@@ -126,7 +126,9 @@ function showMessage() {
         <transition name="fade-out-only">
             <div class="toast" v-if="isCopy">키워드 복사 완료!</div>
         </transition>
-        <span class="rest">남은 참여 횟수: 1</span>
+        <span class="rest" :class="{ startMission: startMission }"
+            >남은 참여 횟수: 1</span
+        >
     </section>
 </template>
 
@@ -162,6 +164,7 @@ function showMessage() {
         font-size: 20px;
         border-radius: 10px;
         font-weight: 500;
+        padding: 13px 0;
     }
     .prevbtn {
         background: #f2f2f4;
@@ -181,8 +184,20 @@ function showMessage() {
     }
     .input {
         width: 100%;
+        background: rgba(4, 199, 91, 0.1);
+        height: 50px;
+        border-radius: 10px;
+        padding-left: 20px;
+        font-size: 20px;
+    }
+    .send {
+        flex-grow: 1;
+        background: #04c75b;
+        color: #fff;
     }
     .change {
+        background: #f2f2f4;
+        flex-grow: 1;
     }
 }
 .poi {
@@ -395,7 +410,6 @@ function showMessage() {
 }
 .rest {
     box-shadow: 0px 0px 12px 2px rgba(4, 199, 91, 0.8);
-
     position: fixed;
     bottom: 100px;
     right: 20px;
@@ -404,6 +418,9 @@ function showMessage() {
     padding: 10px;
     z-index: 1;
     border-radius: 10px;
+    &.startMission {
+        bottom: 160px;
+    }
 }
 .fade-out-only-enter-active {
     transition: none;

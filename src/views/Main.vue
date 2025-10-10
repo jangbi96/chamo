@@ -116,7 +116,7 @@ function showMessage() {
             <template v-if="startMission">
                 <input type="text" class="input" />
                 <button class="change">미션 상품 변경</button>
-                <button class="send" @click="startMission = true">
+                <button class="send" @click="router.push('/success')">
                     정답 제출
                 </button>
             </template>

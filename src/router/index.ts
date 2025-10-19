@@ -23,6 +23,11 @@ const router = createRouter({
             name: 'success',
             component: Success,
         },
+        {
+            path: '/success',
+            name: 'success',
+            component: Success,
+        },
     ],
 })
 

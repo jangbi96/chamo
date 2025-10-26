@@ -2,6 +2,15 @@
 import { onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import 'vue3-carousel/carousel.css'
+import axios from 'axios'
+
+const videoUrls = [
+    'http://lightning.ai.kr.s3.ap-northeast-2.amazonaws.com/introduction1.mp4',
+    'http://lightning.ai.kr.s3.ap-northeast-2.amazonaws.com/introduction2.mp4',
+    'http://lightning.ai.kr.s3.ap-northeast-2.amazonaws.com/introduction3.mp4',
+]
+
+const videoTrigger = ref(0)
 const router = useRouter()
 const route = useRoute()
 const active1 = ref(false)
@@ -14,13 +23,28 @@ const inputValue = ref('')
 const wrong = ref(false)
 const test = ref(false)
 const domref = ref<HTMLElement | null>(null)
-function showMessage() {
-    isCopy.value = true
-    startMission.value = 2
-    // 2초 후에 자동으로 사라짐
-    setTimeout(() => {
-        isCopy.value = false
-    }, 1000)
+
+const data = ref()
+
+axios
+    .get('https://jsonplaceholder.typicode.com/todos/1')
+    .then((res) => console.log(res.data))
+    .catch((err) => console.error(err))
+
+async function showMessage() {
+    try {
+        await navigator.clipboard.writeText('sdfsdf')
+        isCopy.value = true
+        startMission.value = 2
+        // 2초 후에 자동으로 사라짐
+        setTimeout(() => {
+            isCopy.value = false
+        }, 1000)
+    } catch (error) {}
+}
+
+function nextVideo() {
+    videoTrigger.value = videoTrigger.value + 1
 }
 const triggerError = () => {
     wrong.value = true
@@ -41,7 +65,21 @@ onMounted(() => {
 
 <template>
     <section class="section">
-        <strong class="poi"><img class="coinimg" src="../assets/imgs/mini-coin.png" />선착순 미션</strong>
+        <div class="video-sec" v-show="videoTrigger < 3">
+            <video
+                v-for="(url, i) in videoUrls"
+                :key="url"
+                v-show="i === videoTrigger"
+                :src="url"
+                muted
+                autoplay
+                @click="nextVideo"
+                :class="['video-item', { active: i === videoTrigger }]"
+            ></video>
+        </div>
+        <strong class="poi"
+            ><img class="coinimg" src="../assets/imgs/mini-coin.png" />선착순 미션</strong
+        >
         <h1 class="main-txt">
             첫번째 관련태그 찾고<br />
             <em>포인트 받기</em>
@@ -72,7 +110,10 @@ onMounted(() => {
                                 <div class="box">
                                     <img src="../assets/imgs/test-thumb.png" alt="" />
                                     <dl>
-                                        <dt>씨게이트 외장하드 4TB 데이터<br />복구 외장 HDD 4테라 전용</dt>
+                                        <dt>
+                                            씨게이트 외장하드 4TB 데이터<br />복구 외장 HDD 4테라
+                                            전용
+                                        </dt>
                                         <dd>
                                             <span class="price"> 209,900원 </span>
                                             <span class="cul">씨게이트공식스토어</span>
@@ -96,18 +137,39 @@ onMounted(() => {
             </ul>
             <ul class="questions">
                 <li>
-                    <div @click="() => (active1 = !active1)" class="qs" :class="{ active: active1 }">관련 태그를 어떻게 찾는건가요?</div>
+                    <div
+                        @click="() => (active1 = !active1)"
+                        class="qs"
+                        :class="{ active: active1 }"
+                    >
+                        관련 태그를 어떻게 찾는건가요?
+                    </div>
                     <div v-if="active1" class="active-content">
                         <p>미션 힌트를 보고 상품을 찾아주세요.</p>
-                        <p>상품에 들어간 후, '상세정보 펼쳐보기'버튼을<br />누르고 아래로 내려 <em>'첫번째 태그'가 있습니다.</em></p>
+                        <p>
+                            상품에 들어간 후, '상세정보 펼쳐보기'버튼을<br />누르고 아래로 내려
+                            <em>'첫번째 태그'가 있습니다.</em>
+                        </p>
                         <img src="../assets/imgs/step5-q.png" class="mission-img" alt="" />
                     </div>
                 </li>
                 <li>
-                    <div @click="() => (active2 = !active2)" class="qs" :class="{ active: active2 }">상품이 미션의 순위에 보이지 않아요.</div>
+                    <div
+                        @click="() => (active2 = !active2)"
+                        class="qs"
+                        :class="{ active: active2 }"
+                    >
+                        상품이 미션의 순위에 보이지 않아요.
+                    </div>
                     <div v-if="active2" class="active-content">
-                        <p>미션 힌트의 순위에 상품이 보이지 않으면 <em>'가격비교 더보기'</em> 버튼을 클릭하여 션 상품을 찾아주세요.</p>
-                        <p>그래도 못 찾겠다면, <em>'새로고침' 하여 다른 상품으로 변경 후</em> 참여해주세요.</p>
+                        <p>
+                            미션 힌트의 순위에 상품이 보이지 않으면
+                            <em>'가격비교 더보기'</em> 버튼을 클릭하여 션 상품을 찾아주세요.
+                        </p>
+                        <p>
+                            그래도 못 찾겠다면,
+                            <em>'새로고침' 하여 다른 상품으로 변경 후</em> 참여해주세요.
+                        </p>
                         <img src="../assets/imgs/step2-q.png" class="mission-img" alt="" />
                     </div>
                 </li>
@@ -137,11 +199,23 @@ onMounted(() => {
         </template>
 
         <div class="foot-btns" :class="{ showInput: startMission == 3 }">
-            <input ref="domref" type="text" v-model="inputValue" class="sendinput" :class="{ error: wrong }" v-if="startMission == 3" placeholder="첫번째 태그를 입력해주세요" />
+            <input
+                ref="domref"
+                type="text"
+                v-model="inputValue"
+                class="sendinput"
+                :class="{ error: wrong }"
+                v-if="startMission == 3"
+                placeholder="첫번째 태그를 입력해주세요"
+            />
             <button class="prevbtn" @click="() => router.push('/howto')">참여방법 확인</button>
-            <button class="nextbtn" @click="() => (startMission = 1)" v-if="startMission == 0">미션 바로하기</button>
+            <button class="nextbtn" @click="() => (startMission = 1)" v-if="startMission == 0">
+                미션 바로하기
+            </button>
             <button class="gray" @click="showMessage" v-if="startMission == 1">키워드 복사</button>
-            <button class="nextbtn" @click="() => (startMission = 3)" v-else-if="startMission == 2">미션 시작하기</button>
+            <button class="nextbtn" @click="() => (startMission = 3)" v-else-if="startMission == 2">
+                미션 시작하기
+            </button>
             <button
                 class="nextbtn"
                 @click="
@@ -174,8 +248,42 @@ onMounted(() => {
     /* justify-content: center; */
     align-items: center;
     min-height: 100vh;
+    .video-sec {
+        position: fixed;
+        top: 0;
+        left: 0;
+        @include flex();
+        background: #000;
+        width: 100vw;
+        height: 100vh;
+        z-index: 2;
+        video {
+            inset: 0;
+            width: 100%;
+            display: block;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            &.active {
+                opacity: 1;
+                z-index: 1;
+            }
+        }
+    }
+}
+/* 마지막 비디오가 사라질 때 부드럽게 fade-out */
+.fade-video-enter-active,
+.fade-video-leave-active {
+    transition: opacity 1s ease; /* 페이드 속도 조정 가능 */
 }
 
+.fade-video-enter-from,
+.fade-video-leave-to {
+    opacity: 0;
+}
+.fade-video-enter-to,
+.fade-video-leave-from {
+    opacity: 1;
+}
 .foot-btns {
     position: fixed;
     bottom: 0;
@@ -529,9 +637,12 @@ onMounted(() => {
     em {
         color: #03cc64;
         margin-left: 10px;
+        user-select: none;
     }
 }
 .text-box {
+    user-select: none;
+
     margin-top: 10px;
     width: 90%;
     padding: 20px;

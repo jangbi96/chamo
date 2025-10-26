@@ -3,6 +3,11 @@ import { RouterLink } from 'vue-router'
 import { useRoute } from 'vue-router'
 import 'vue3-carousel/carousel.css'
 import { ref } from 'vue'
+const close = () => {
+    // window.location.href = 'about:blank'
+    // window.open('', '_self').close()
+    window.close()
+}
 </script>
 
 <template>
@@ -26,7 +31,7 @@ import { ref } from 'vue'
             </transition>
         </div>
 
-        <button class="end">종료하기</button>
+        <button class="end" @click="close">종료하기</button>
     </section>
 </template>
 

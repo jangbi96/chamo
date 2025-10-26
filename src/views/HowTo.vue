@@ -11,6 +11,7 @@ const carouselConfig = {
     touchDrag: true,
 }
 const router = useRouter()
+const route = useRoute();
 
 const step = ref(1)
 
@@ -90,19 +91,16 @@ const onSlideChange = (a: any) => {
 
         <div class="foot-btns">
             <button class="prevbtn" @click="prevSlide">이전</button>
-            <button
-                class="nextbtn"
-                @click="
-                    () => {
-                        if (step === 5) {
-                            router.push({ path: '/main', query: { mission: 'true' } })
-                        }
-                        {
-                            nextSlide()
-                        }
+            <button class="nextbtn" @click="
+                () => {
+                    if (step === 5) {
+                        router.push({ path: '/', query: { ...route.query, mission: 'true' } })
                     }
-                "
-            >
+                    {
+                        nextSlide()
+                    }
+                }
+            ">
                 {{ step == 5 ? '미션 바로하기' : '다음' }}
             </button>
         </div>
@@ -118,6 +116,7 @@ const onSlideChange = (a: any) => {
     /* justify-content: center; */
     align-items: center;
 }
+
 .steps {
     display: flex;
     align-items: center;
@@ -126,11 +125,13 @@ const onSlideChange = (a: any) => {
     z-index: 1;
     gap: 5px;
     margin-bottom: 20px;
+
     li {
         width: 10px;
         height: 10px;
         border-radius: 50%;
         background: #d1d5d9;
+
         &.active {
             background: #04c75b;
         }
@@ -140,15 +141,18 @@ const onSlideChange = (a: any) => {
 .slide-item {
     display: flex;
     flex-direction: column;
+
     h1 {
         text-align: center;
         line-height: 1.2;
         font-weight: 600;
         margin-bottom: 10px;
+
         em {
             color: #04c75b;
         }
     }
+
     p {
         width: 90%;
         color: #989898;
@@ -157,6 +161,7 @@ const onSlideChange = (a: any) => {
         line-height: 1.4;
         margin-bottom: 30px;
         position: relative;
+
         .circle {
             top: -2px;
             position: absolute;
@@ -169,6 +174,7 @@ const onSlideChange = (a: any) => {
             @include flex();
             align-items: center;
             justify-items: center;
+
             &::before {
                 content: '';
                 width: 11px;
@@ -177,6 +183,7 @@ const onSlideChange = (a: any) => {
                 display: inline-block;
                 background: #03cc64;
             }
+
             &::after {
                 content: '';
                 width: 40px;
@@ -191,9 +198,11 @@ const onSlideChange = (a: any) => {
             }
         }
     }
+
     img {
         width: 90%;
     }
+
     .ad {
         width: 52px;
         height: 20px;
@@ -202,10 +211,12 @@ const onSlideChange = (a: any) => {
         display: inline-block;
         background: url('../assets/imgs/ad.png') no-repeat center / cover;
     }
+
     .han {
         font-weight: 600;
         color: #444444;
     }
+
     &:first-child {
         .circle {
             &::after {
@@ -213,6 +224,7 @@ const onSlideChange = (a: any) => {
             }
         }
     }
+
     &:nth-child(2) {
         .circle {
             &::after {
@@ -220,6 +232,7 @@ const onSlideChange = (a: any) => {
             }
         }
     }
+
     &:last-child {
         .circle {
             &::after {
@@ -242,6 +255,7 @@ const onSlideChange = (a: any) => {
     z-index: 1;
     border-radius: 20px 20px 0 0;
     box-shadow: 0 -6px 18px -8px rgba(0, 0, 0, 0.3);
+
     button {
         flex-grow: 1;
         height: 100%;
@@ -249,9 +263,11 @@ const onSlideChange = (a: any) => {
         border-radius: 10px;
         font-weight: 600;
     }
+
     .prevbtn {
         background: #f2f2f4;
     }
+
     .nextbtn {
         background: #04c75b;
         color: #fff;
@@ -262,6 +278,7 @@ const onSlideChange = (a: any) => {
         top: 3px;
     }
 }
+
 .ad {
     img {
         width: 50px;

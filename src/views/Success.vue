@@ -3,11 +3,14 @@ import { RouterLink } from 'vue-router'
 import { useRoute } from 'vue-router'
 import 'vue3-carousel/carousel.css'
 import { ref } from 'vue'
+
+
 const close = () => {
-    // window.location.href = 'about:blank'
-    // window.open('', '_self').close()
-    window.close()
+    window.close();
 }
+
+
+
 </script>
 
 <template>
@@ -44,6 +47,7 @@ const close = () => {
     align-items: center;
     justify-content: start;
     padding-top: 100px;
+
     button {
         width: 90%;
         display: inline-block;
@@ -57,12 +61,14 @@ const close = () => {
 
         bottom: 20px;
     }
+
     h1 {
         color: #04c75b;
         font-weight: 700;
         font-size: 45px;
         margin-bottom: 10px;
     }
+
     p {
         font-size: 22px;
         color: #989898;
@@ -77,20 +83,24 @@ const close = () => {
     position: relative;
     top: 30px;
 }
+
 .present {
     width: 250px;
     position: relative;
 }
+
 .coin {
     position: absolute;
     width: 130px;
     z-index: 1;
     top: 90px;
 }
+
 .obs {
     @include flex();
     flex-direction: column;
     position: relative;
+
     img {
         margin: 0 auto;
     }
@@ -102,10 +112,12 @@ const close = () => {
 .fade-slide-enter-active {
     transition: all 0.8s ease-out;
 }
+
 .fade-slide-enter-from {
     opacity: 0;
     transform: translateY(-20px);
 }
+
 .fade-slide-enter-to {
     opacity: 1;
     transform: translateY(0);
@@ -114,10 +126,12 @@ const close = () => {
 .fade-drop-enter-active {
     transition: all 0.5s 0.5s ease-out;
 }
+
 .fade-drop-enter-from {
     opacity: 0;
     transform: translateY(-40px);
 }
+
 .fade-drop-enter-to {
     opacity: 1;
     transform: translateY(0);

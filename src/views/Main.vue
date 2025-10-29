@@ -170,7 +170,7 @@ async function getData(logId?: string) {
     try {
         const params = {
             userId: route.query.userId,
-            bzTrackingId: route.query.bzTrackingId,
+            bztrackingid: route.query.bztrackingid,
             ifa: route.query.ifa,
             ...(logId ? { logId } : {})
         }

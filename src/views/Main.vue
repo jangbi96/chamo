@@ -2,9 +2,8 @@
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import 'vue3-carousel/carousel.css'
-import axios from 'axios';
-import { useIdleTimerStore } from '@/stores/timer';
-
+import axios from 'axios'
+import { useIdleTimerStore } from '@/stores/timer'
 
 const videoUrls = [
     'http://lightning.ai.kr.s3.ap-northeast-2.amazonaws.com/introduction1.mp4',
@@ -13,32 +12,31 @@ const videoUrls = [
 ]
 const idleTimer = useIdleTimerStore()
 const videoTrigger = ref(0)
-const router = useRouter();
-const route = useRoute();
+const router = useRouter()
+const route = useRoute()
 
-const active1 = ref(false);
-const active2 = ref(false);
+const active1 = ref(false)
+const active2 = ref(false)
 
-const isCopy = ref(false);
+const isCopy = ref(false)
 
-const startMission = ref(0);
-const inputValue = ref('');
-const wrong = ref(false);
-const test = ref(false);
-const domref = ref<HTMLElement | null>(null);
+const startMission = ref(0)
+const inputValue = ref('')
+const wrong = ref(false)
+const test = ref(false)
+const domref = ref<HTMLElement | null>(null)
 
-const data = ref<any>(null);
-const boldText = ref('');
-const restText = ref('');
+const data = ref<any>(null)
+const boldText = ref('')
+const restText = ref('')
 
-const closing_window = ref(false);
-
+const closing_window = ref(false)
 
 /* 키워드복사횟수, 정답입력횟수, 정답체크 진행 */
-const copyCnt = ref(0);
-const writeAnswerCnt = ref(0);
+const copyCnt = ref(0)
+const writeAnswerCnt = ref(0)
 /** 오답 기록 */
-const submittedAnswer = ref('');
+const submittedAnswer = ref('')
 
 function toQueryString(obj: Record<string, any>): string {
     const params = new URLSearchParams()
@@ -52,38 +50,37 @@ function toQueryString(obj: Record<string, any>): string {
 async function showMessage(keyword: string) {
     try {
         // 최신 브라우저에서 HTTPS 환경이면 navigator.clipboard 사용
-        await navigator.clipboard.writeText(keyword);
+        await navigator.clipboard.writeText(keyword)
     } catch {
         // fallback: 모바일/HTTP 환경에서 document.execCommand 사용
-        const textArea = document.createElement('textarea');
-        textArea.value = keyword;
+        const textArea = document.createElement('textarea')
+        textArea.value = keyword
         // 화면에 보이지 않도록 스타일
-        textArea.style.position = 'fixed';
-        textArea.style.top = '0';
-        textArea.style.left = '0';
-        textArea.style.width = '1px';
-        textArea.style.height = '1px';
-        textArea.style.opacity = '0';
-        document.body.appendChild(textArea);
+        textArea.style.position = 'fixed'
+        textArea.style.top = '0'
+        textArea.style.left = '0'
+        textArea.style.width = '1px'
+        textArea.style.height = '1px'
+        textArea.style.opacity = '0'
+        document.body.appendChild(textArea)
 
-        textArea.select();
+        textArea.select()
         try {
-            document.execCommand('copy');
+            document.execCommand('copy')
         } finally {
-            document.body.removeChild(textArea);
+            document.body.removeChild(textArea)
         }
     }
 
     // 기존 UI 처리 그대로 유지
-    isCopy.value = true;
-    copyCnt.value += 1;
-    startMission.value = 2;
+    isCopy.value = true
+    copyCnt.value += 1
+    startMission.value = 2
 
     setTimeout(() => {
-        isCopy.value = false;
-    }, 1000);
+        isCopy.value = false
+    }, 1000)
 }
-
 
 function nextVideo() {
     videoTrigger.value = videoTrigger.value + 1
@@ -100,9 +97,8 @@ const triggerError = () => {
     }, 500)
 }
 
-
 function addComma(num: string | number) {
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 }
 
 /*
@@ -110,10 +106,9 @@ function addComma(num: string | number) {
  * 연결 끝의 기준-> 10분, 창 종료
  */
 async function record(state: 'submited' | 'end') {
-
     if (inputValue.value.length === 1 || !inputValue.value) {
-        triggerError();
-        return;
+        triggerError()
+        return
     }
 
     try {
@@ -121,33 +116,34 @@ async function record(state: 'submited' | 'end') {
             logId: data.value?.logId,
             copyCount: copyCnt.value,
             // inputCount: writeAnswerCnt.value,
-            submittedAnswer: inputValue.value
+            submittedAnswer: inputValue.value,
         }
 
         // 정답일경우
         if (state === 'submited') {
-
-            const res1 = await axios.post(`http://admin.lightning.ai.kr/api/mission/attemptRecord?${toQueryString(params)}`);
+            const res1 = await axios.post(
+                `http://admin.lightning.ai.kr/api/mission/attemptRecord?${toQueryString(params)}`,
+            )
             // const res2 = await axios.post(`http://admin.lightning.ai.kr/api/mission/complete?${toQueryString({ logId: data.value?.logId })}`);
 
             if (res1) {
-                router.push('/success');
+                router.push('/success')
             }
         }
 
         // 연결이 끊긴경우
         if (state === 'end') {
-            const res1 = await axios.post(`http://admin.lightning.ai.kr/api/mission/attemptRecord?${toQueryString(params)}`);
+            const res1 = await axios.post(
+                `http://admin.lightning.ai.kr/api/mission/attemptRecord?${toQueryString(params)}`,
+            )
             // const res2 = await axios.post(`http://admin.lightning.ai.kr/api/mission/exit?${toQueryString({ logId: data.value?.logId })}`);
         }
-
     } catch (error: any) {
         if (error.status === 409) {
-            triggerError();
+            triggerError()
         }
     }
 }
-
 
 // function checkAndwer(hashtag: string) {
 //     writeAnswerCnt.value = writeAnswerCnt.value + 1;
@@ -158,38 +154,36 @@ async function record(state: 'submited' | 'end') {
 
 //     record('submited');
 
-
 //     // 성공시 전송
 //     if (hashtag?.includes(inputValue.value)) {
 //     }
 
 // }
 
-
 async function getData(logId?: string) {
     try {
         const params = {
-            userId: route.query.userId,
-            bztrackingid: route.query.bztrackingid,
+            userId: route.query.user_id,
+            bzTrackingId: route.query.bz_tracking_id,
             ifa: route.query.ifa,
-            ...(logId ? { logId } : {})
+            ...(logId ? { logId } : {}),
         }
 
-        const res: any = await axios.get(`http://admin.lightning.ai.kr/api/mission/info?${toQueryString(params)}`);
+        const res: any = await axios.get(
+            `http://admin.lightning.ai.kr/api/mission/info?${toQueryString(params)}`,
+        )
 
+        data.value = res.data
+        const text = res.data.title
 
-        data.value = res.data;
-        const text = res.data.title;
+        const rr = text.replace(/<\/?b>/gi, '')
 
-        const rr = text.replace(/<\/?b>/gi, '');
-
-        boldText.value = res.data.workKeyword;
-        restText.value = rr;
+        boldText.value = res.data.workKeyword
+        restText.value = rr
     } catch (error) {
-        router.push('/fail');
+        router.push('/fail')
         console.log(error)
     }
-
 }
 
 function handleClick() {
@@ -205,11 +199,11 @@ function handleClick() {
 
 onMounted(() => {
     if (route.query.mission) {
-        startMission.value = 1;
+        startMission.value = 1
     }
     idleTimer.start(() => record('end'))
 
-    getData();
+    getData()
 
     // document.addEventListener("visibilitychange", function logData() {
 
@@ -218,34 +212,45 @@ onMounted(() => {
     //         // navigator.sendBeacon("/log", analyticsData);
     //     }
     // })
-
-
 })
 
 /** 흰화면 exit */
 
 onBeforeUnmount(() => {
-    idleTimer.stop();
-});
-
-watch(() => startMission.value, (newVal) => {
-    if (newVal === 0) {
-        window.scrollTo({
-            top: 0,
-        })
-    }
+    idleTimer.stop()
 })
 
+watch(
+    () => startMission.value,
+    (newVal) => {
+        if (newVal === 0) {
+            window.scrollTo({
+                top: 0,
+            })
+        }
+    },
+)
 </script>
 
 <template>
     <section class="section">
         <div class="video-sec" v-show="videoTrigger < 3" v-if="data?.isVideoExposureNeeded === 'Y'">
-            <video playsinline webkit-playsinline v-for="(url, i) in videoUrls" :key="url" v-show="i === videoTrigger"
-                :src="url" muted autoplay @click="nextVideo"
-                :class="['video-item', { active: i === videoTrigger }]"></video>
+            <video
+                playsinline
+                webkit-playsinline
+                v-for="(url, i) in videoUrls"
+                :key="url"
+                v-show="i === videoTrigger"
+                :src="url"
+                muted
+                autoplay
+                @click="nextVideo"
+                :class="['video-item', { active: i === videoTrigger }]"
+            ></video>
         </div>
-        <strong class="poi"><img class="coinimg" src="../assets/imgs/mini-coin.png" />선착순 미션</strong>
+        <strong class="poi"
+            ><img class="coinimg" src="../assets/imgs/mini-coin.png" />선착순 미션</strong
+        >
         <h1 class="main-txt">
             첫번째 관련태그 찾고<br />
             <em>포인트 받기</em>
@@ -303,7 +308,11 @@ watch(() => startMission.value, (newVal) => {
             </ul>
             <ul class="questions">
                 <li>
-                    <div @click="() => (active1 = !active1)" class="qs" :class="{ active: active1 }">
+                    <div
+                        @click="() => (active1 = !active1)"
+                        class="qs"
+                        :class="{ active: active1 }"
+                    >
                         관련 태그를 어떻게 찾는건가요?
                     </div>
                     <div v-if="active1" class="active-content">
@@ -316,7 +325,11 @@ watch(() => startMission.value, (newVal) => {
                     </div>
                 </li>
                 <li>
-                    <div @click="() => (active2 = !active2)" class="qs" :class="{ active: active2 }">
+                    <div
+                        @click="() => (active2 = !active2)"
+                        class="qs"
+                        :class="{ active: active2 }"
+                    >
                         상품이 미션의 순위에 보이지 않아요.
                     </div>
                     <div v-if="active2" class="active-content">
@@ -340,7 +353,11 @@ watch(() => startMission.value, (newVal) => {
             </div>
             <div class="dsc-box">
                 <img src="../assets/imgs/ad.png" alt="" />
-                제외 <em>{{ Math.floor(data?.currentRank / 20) + 1 }}페이지 {{ data?.currentRank % 20 }}위</em>
+                제외
+                <em
+                    >{{ Math.floor(data?.currentRank / 20) + 1 }}페이지
+                    {{ data?.currentRank % 20 }}위</em
+                >
             </div>
             <div class="text-box">
                 <strong>{{ boldText }}</strong>
@@ -350,32 +367,50 @@ watch(() => startMission.value, (newVal) => {
                 <span class="price">{{ addComma(data?.lprice) }}원</span>
                 <span class="cul">{{ data?.mallName }}</span>
             </div>
-            <span class="change-mission" @click="() => {
-                startMission = 0;
-                getData(data?.logId);
-
-            }">미션 상품을 변경하기
+            <span
+                class="change-mission"
+                @click="
+                    () => {
+                        startMission = 0
+                        getData(data?.logId)
+                    }
+                "
+                >미션 상품을 변경하기
                 <img src="../assets/imgs/arrow-go.png" alt="" />
             </span>
         </template>
 
         <div class="foot-btns" :class="{ showInput: startMission == 3 }">
-            <input ref="domref" type="text" v-model="inputValue" class="sendinput" :class="{ error: wrong }"
-                v-if="startMission == 3" placeholder="첫번째 태그를 입력해주세요" />
-            <button class="prevbtn" @click="() => router.push({ path: '/howto', query: { ...route.query } })">참여방법
-                확인</button>
+            <input
+                ref="domref"
+                type="text"
+                v-model="inputValue"
+                class="sendinput"
+                :class="{ error: wrong }"
+                v-if="startMission == 3"
+                placeholder="첫번째 태그를 입력해주세요"
+            />
+            <button
+                class="prevbtn"
+                @click="() => router.push({ path: '/howto', query: { ...route.query } })"
+            >
+                참여방법 확인
+            </button>
             <button class="nextbtn" @click="() => (startMission = 1)" v-if="startMission == 0">
                 미션 바로하기
             </button>
-            <button class="gray" @click="() => showMessage(data?.workKeyword)" v-if="startMission == 1">키워드 복사</button>
-
+            <button
+                class="gray"
+                @click="() => showMessage(data?.workKeyword)"
+                v-if="startMission == 1"
+            >
+                키워드 복사
+            </button>
 
             <button class="nextbtn" v-if="startMission === 2" @click="handleClick">
                 미션 시작하기
             </button>
-            <button class="nextbtn" @click="
-                () => record('submited')
-            " v-else-if="startMission == 3">
+            <button class="nextbtn" @click="() => record('submited')" v-else-if="startMission == 3">
                 정답 제출
             </button>
         </div>

@@ -7,9 +7,9 @@ import { useIdleTimerStore } from '@/stores/timer';
 
 
 const videoUrls = [
-    'http://lightning.ai.kr.s3.ap-northeast-2.amazonaws.com/introduction1.mp4',
-    'http://lightning.ai.kr.s3.ap-northeast-2.amazonaws.com/introduction2.mp4',
-    'http://lightning.ai.kr.s3.ap-northeast-2.amazonaws.com/introduction3.mp4',
+    'https://lightning.ai.kr/introduction1.mp4',
+    'https://lightning.ai.kr/introduction2.mp4',
+    'https://lightning.ai.kr/introduction3.mp4',
 ]
 const idleTimer = useIdleTimerStore()
 const videoTrigger = ref(0)

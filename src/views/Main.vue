@@ -6,9 +6,9 @@ import axios from 'axios'
 import { useIdleTimerStore } from '@/stores/timer'
 
 const videoUrls = [
-    'https://lightning.ai.kr/introduction1.mp4',
-    'https://lightning.ai.kr/introduction2.mp4',
-    'https://lightning.ai.kr/introduction3.mp4',
+    'https://img.lightning.ai.kr/introduction1.mp4',
+    'https://img.lightning.ai.kr/introduction2.mp4',
+    'https://img.lightning.ai.kr/introduction3.mp4',
 ]
 const idleTimer = useIdleTimerStore()
 const videoTrigger = ref(0)
@@ -115,7 +115,6 @@ async function record(state: 'submited' | 'end') {
         const params = {
             logId: data.value?.logId,
             copyCount: copyCnt.value,
-            // inputCount: writeAnswerCnt.value,
             submittedAnswer: inputValue.value,
         }
 
@@ -124,7 +123,6 @@ async function record(state: 'submited' | 'end') {
             const res1 = await axios.post(
                 `http://admin.lightning.ai.kr/api/mission/attemptRecord?${toQueryString(params)}`,
             )
-            // const res2 = await axios.post(`http://admin.lightning.ai.kr/api/mission/complete?${toQueryString({ logId: data.value?.logId })}`);
 
             if (res1) {
                 router.push('/success')
@@ -136,7 +134,6 @@ async function record(state: 'submited' | 'end') {
             const res1 = await axios.post(
                 `http://admin.lightning.ai.kr/api/mission/attemptRecord?${toQueryString(params)}`,
             )
-            // const res2 = await axios.post(`http://admin.lightning.ai.kr/api/mission/exit?${toQueryString({ logId: data.value?.logId })}`);
         }
     } catch (error: any) {
         if (error.status === 409) {
@@ -144,21 +141,6 @@ async function record(state: 'submited' | 'end') {
         }
     }
 }
-
-// function checkAndwer(hashtag: string) {
-//     writeAnswerCnt.value = writeAnswerCnt.value + 1;
-//     if (!inputValue.value || inputValue.value.length == 1 || !hashtag?.includes(inputValue.value)) {
-//         triggerError();
-//         return;
-//     }
-
-//     record('submited');
-
-//     // 성공시 전송
-//     if (hashtag?.includes(inputValue.value)) {
-//     }
-
-// }
 
 async function getData(logId?: string) {
     try {
@@ -181,7 +163,7 @@ async function getData(logId?: string) {
         boldText.value = res.data.workKeyword
         restText.value = rr
     } catch (error) {
-        router.push('/fail')
+        // router.push('/fail')
         console.log(error)
     }
 }
@@ -190,11 +172,9 @@ function handleClick() {
     startMission.value = 3
 
     // 모바일 Safari 안전하게 새 탭 열기
-
     setTimeout(() => {
         window.open('https://www.naver.com/')
     }, 0)
-    // window.open('https://www.naver.com/', '_blank')
 }
 
 onMounted(() => {
@@ -204,17 +184,7 @@ onMounted(() => {
     idleTimer.start(() => record('end'))
 
     getData()
-
-    // document.addEventListener("visibilitychange", function logData() {
-
-    //     console.log(document.visibilityState)
-    //     if (document.visibilityState === "hidden") {
-    //         // navigator.sendBeacon("/log", analyticsData);
-    //     }
-    // })
 })
-
-/** 흰화면 exit */
 
 onBeforeUnmount(() => {
     idleTimer.stop()
@@ -234,19 +204,22 @@ watch(
 
 <template>
     <section class="section">
-        <div class="video-sec" v-show="videoTrigger < 3" v-if="data?.isVideoExposureNeeded === 'Y'">
+        <div class="video-sec" v-show="videoTrigger < 3">
+            <!-- <div class="video-sec" v-show="videoTrigger < 3" v-if="data?.isVideoExposureNeeded === 'Y'"> -->
             <video
+                preload="auto"
                 playsinline
                 webkit-playsinline
                 v-for="(url, i) in videoUrls"
                 :key="url"
                 v-show="i === videoTrigger"
-                :src="url"
                 muted
                 autoplay
                 @click="nextVideo"
                 :class="['video-item', { active: i === videoTrigger }]"
-            ></video>
+            >
+                <source :src="url" type="video/mp4" />
+            </video>
         </div>
         <strong class="poi"
             ><img class="coinimg" src="../assets/imgs/mini-coin.png" />선착순 미션</strong
@@ -446,8 +419,9 @@ watch(
             width: 100%;
             display: block;
             opacity: 0;
+            max-width: 406px; /* 원본 폭에 맞춤 */
+            height: auto;
             transition: opacity 0.5s ease;
-
             &.active {
                 opacity: 1;
                 z-index: 1;

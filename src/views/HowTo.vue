@@ -2,7 +2,14 @@
 import { RouterLink, useRouter } from 'vue-router'
 import { useRoute } from 'vue-router'
 import 'vue3-carousel/carousel.css'
-import { Carousel, Slide, Pagination as CarouselPagination, Navigation as CarouselNavigation } from 'vue3-carousel'
+import { useMissionStore } from '@/stores/useMissionStore'
+
+import {
+    Carousel,
+    Slide,
+    Pagination as CarouselPagination,
+    Navigation as CarouselNavigation,
+} from 'vue3-carousel'
 import { ref } from 'vue'
 const carousel = ref() // Carousel 인스턴스
 const carouselConfig = {
@@ -10,16 +17,24 @@ const carouselConfig = {
     // wrapAround: ,
     touchDrag: true,
 }
+
+const missionStore = useMissionStore()
 const router = useRouter()
-const route = useRoute();
+const route = useRoute()
 
 const step = ref(1)
 
 const prevSlide = () => {
+    if (step.value === 1) {
+        router.push({ path: '/', query: { ...route.query, novideo: 'true', mission: 'false' } })
+    }
     carousel.value?.prev()
 }
 const nextSlide = () => {
     carousel.value?.next()
+}
+function addComma(num: string | number) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') ?? ''
 }
 
 // 슬라이드가 바뀔 때 이벤트로도 자동 갱신 (공식 이벤트)
@@ -46,7 +61,10 @@ const onSlideChange = (a: any) => {
                     네이버 앱 복사한 키워드를<br />
                     붙여넣어 주세요.
                 </p>
-                <img src="../assets/imgs/step1.png" />
+                <div class="slide-wrap">
+                    <strong class="slide1-txt">{{ missionStore.data?.workKeyword }}</strong>
+                    <img src="../assets/imgs/step1_new.png" />
+                </div>
             </Slide>
             <Slide class="slide-item">
                 <h1>가격비교 탭에서<br /><em>더보기 버튼 클릭</em></h1>
@@ -55,7 +73,10 @@ const onSlideChange = (a: any) => {
 
                     네이버 앱 가격비교 탭에서<br />가격 더보기를 클릭해주세요.
                 </p>
-                <img src="../assets/imgs/step2.png" />
+                <div class="slide-wrap">
+                    <strong class="slide2-txt">{{ missionStore.data?.workKeyword }}</strong>
+                    <img src="../assets/imgs/step2_new.png" />
+                </div>
             </Slide>
             <Slide class="slide-item">
                 <h1>상품이 페이지에서<br /><em>미션상품을 찾기</em></h1>
@@ -64,7 +85,19 @@ const onSlideChange = (a: any) => {
                     <span class="ad"></span><em class="han">표시 제외</em>하고 상품을<br />
                     찾아주세요.
                 </p>
-                <img src="../assets/imgs/step3.png" />
+                <div class="slide-wrap">
+                    <div class="slide3-txt">
+                        <img :src="missionStore.data?.imageUrl" alt="" />
+                        <dl>
+                            <dt>{{ missionStore.restText }}</dt>
+                            <dd>
+                                <span>{{ addComma(missionStore.data?.lprice) }}원</span>
+                                <em>{{ missionStore.data?.mallName }}</em>
+                            </dd>
+                        </dl>
+                    </div>
+                    <img src="../assets/imgs/step3_new.png" />
+                </div>
             </Slide>
             <Slide class="slide-item">
                 <h1>상세페이지 하단의<br /><em>펼쳐보기 버튼 클릭</em></h1>
@@ -91,16 +124,22 @@ const onSlideChange = (a: any) => {
 
         <div class="foot-btns">
             <button class="prevbtn" @click="prevSlide">이전</button>
-            <button class="nextbtn" @click="
-                () => {
-                    if (step === 5) {
-                        router.push({ path: '/', query: { ...route.query, mission: 'true' } })
+            <button
+                class="nextbtn"
+                @click="
+                    () => {
+                        if (step === 5) {
+                            router.push({
+                                path: '/',
+                                query: { ...route.query, mission: 'true', novideo: 'true' },
+                            })
+                        }
+                        {
+                            nextSlide()
+                        }
                     }
-                    {
-                        nextSlide()
-                    }
-                }
-            ">
+                "
+            >
                 {{ step == 5 ? '미션 바로하기' : '다음' }}
             </button>
         </div>
@@ -199,8 +238,64 @@ const onSlideChange = (a: any) => {
         }
     }
 
-    img {
+    .slide-wrap {
+        position: relative;
         width: 90%;
+        .slide1-txt,
+        .slide2-txt,
+        .slide3-txt {
+            position: absolute;
+        }
+        .slide1-txt {
+            top: 26.8%;
+            font-weight: 500;
+            font-size: 25px;
+            color: #03cc64;
+            left: 50%;
+            transform: translateX(-50%);
+            width: max-content;
+        }
+        .slide2-txt {
+            color: #525a61;
+            left: 25%;
+            top: 11.8%;
+            font-weight: 600;
+            width: max-content;
+        }
+        .slide3-txt {
+            display: flex;
+            top: 44.3%;
+            left: 6.1%;
+            width: 90%;
+
+            img {
+                width: 28%;
+                border-radius: 5px;
+            }
+            dl {
+                margin-left: 10px;
+            }
+            dt {
+                color: #40474d;
+                font-weight: 600;
+                font-size: 18px;
+                line-height: 1.1;
+                margin-bottom: 5px;
+                word-break: keep-all;
+            }
+            span {
+                display: block;
+                color: #636c73;
+                font-weight: 700;
+                margin-bottom: 5px;
+            }
+            em {
+                color: #636c73;
+                font-weight: 500;
+            }
+        }
+    }
+    img {
     }
 
     .ad {
@@ -261,7 +356,7 @@ const onSlideChange = (a: any) => {
         height: 100%;
         font-size: 20px;
         border-radius: 10px;
-        font-weight: 600;
+        font-weight: 500;
     }
 
     .prevbtn {
@@ -285,5 +380,8 @@ const onSlideChange = (a: any) => {
         display: inline-block;
         margin: 0 5px;
     }
+}
+.slide-item {
+    position: relative;
 }
 </style>

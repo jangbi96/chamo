@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import 'vue3-carousel/carousel.css'
 import axios from 'axios'
 import { useIdleTimerStore } from '@/stores/timer'
-
+import { useMissionStore } from '@/stores/useMissionStore'
 const videoUrls = [
     'https://img.lightning.ai.kr/introduction1.mp4',
     'https://img.lightning.ai.kr/introduction2.mp4',
     'https://img.lightning.ai.kr/introduction3.mp4',
 ]
+const missionStore = useMissionStore()
 const idleTimer = useIdleTimerStore()
 const videoTrigger = ref(0)
 const router = useRouter()
@@ -21,22 +22,20 @@ const active2 = ref(false)
 const isCopy = ref(false)
 
 const startMission = ref(0)
+
 const inputValue = ref('')
 const wrong = ref(false)
 const test = ref(false)
 const domref = ref<HTMLElement | null>(null)
 
 const data = ref<any>(null)
-const boldText = ref('')
-const restText = ref('')
 
-const closing_window = ref(false)
+// --- 기존 코드 내에 추가 ---
+const videoRefs = ref<HTMLVideoElement[]>([])
+const canClickNext = ref(false) // 현재 영상이 끝났을 때만 true
 
 /* 키워드복사횟수, 정답입력횟수, 정답체크 진행 */
 const copyCnt = ref(0)
-const writeAnswerCnt = ref(0)
-/** 오답 기록 */
-const submittedAnswer = ref('')
 
 function toQueryString(obj: Record<string, any>): string {
     const params = new URLSearchParams()
@@ -83,7 +82,14 @@ async function showMessage(keyword: string) {
 }
 
 function nextVideo() {
-    videoTrigger.value = videoTrigger.value + 1
+    // 세 번째 영상에서는 터치 금지
+    if (videoTrigger.value >= videoUrls.length - 1) return
+
+    // 끝나야 클릭 가능
+    if (canClickNext.value) {
+        videoTrigger.value += 1
+        canClickNext.value = false // 다음 영상은 다시 false로 초기화
+    }
 }
 const triggerError = () => {
     wrong.value = true
@@ -98,7 +104,7 @@ const triggerError = () => {
 }
 
 function addComma(num: string | number) {
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') ?? ''
 }
 
 /*
@@ -113,7 +119,7 @@ async function record(state: 'submited' | 'end') {
 
     try {
         const params = {
-            logId: data.value?.logId,
+            logId: missionStore.data?.logId,
             copyCount: copyCnt.value,
             submittedAnswer: inputValue.value,
         }
@@ -142,6 +148,31 @@ async function record(state: 'submited' | 'end') {
     }
 }
 
+// async function getData(logId?: string) {
+//     try {
+//         const params = {
+//             userId: route.query.user_id,
+//             bzTrackingId: route.query.bz_tracking_id,
+//             ifa: route.query.ifa,
+//             ...(logId ? { logId } : {}),
+//         }
+
+//         const res: any = await axios.get(
+//             `http://admin.lightning.ai.kr/api/mission/info?${toQueryString(params)}`,
+//         )
+
+//         data.value = res.data
+//         const text = res.data.title
+
+//         const rr = text.replace(/<\/?b>/gi, '')
+
+//         boldText.value = res.data.workKeyword
+//         restText.value = rr
+//     } catch (error) {
+//         // router.push('/fail')
+//         console.log(error)
+//     }
+// }
 async function getData(logId?: string) {
     try {
         const params = {
@@ -155,15 +186,9 @@ async function getData(logId?: string) {
             `http://admin.lightning.ai.kr/api/mission/info?${toQueryString(params)}`,
         )
 
-        data.value = res.data
-        const text = res.data.title
-
-        const rr = text.replace(/<\/?b>/gi, '')
-
-        boldText.value = res.data.workKeyword
-        restText.value = rr
+        // store에 데이터 저장
+        missionStore.setData(res.data)
     } catch (error) {
-        // router.push('/fail')
         console.log(error)
     }
 }
@@ -178,12 +203,25 @@ function handleClick() {
 }
 
 onMounted(() => {
-    if (route.query.mission) {
-        startMission.value = 1
-    }
     idleTimer.start(() => record('end'))
 
     getData()
+
+    // 비디오 끝날 때마다 이벤트 연결
+    videoRefs.value.forEach((video, index) => {
+        video.addEventListener('ended', () => {
+            console.log('Video ended', index)
+            if (index < videoUrls.length - 1) {
+                canClickNext.value = true
+            } else {
+                videoTrigger.value = videoUrls.length
+                window.scrollTo({ top: 0 })
+            }
+        })
+    })
+    if (route.query.mission == 'true') {
+        startMission.value = 1
+    }
 })
 
 onBeforeUnmount(() => {
@@ -200,22 +238,40 @@ watch(
         }
     },
 )
+
+function handleVideoEnd(index: number) {
+    console.log('Video ended:', index)
+    if (index < videoUrls.length - 1) {
+        canClickNext.value = true
+    } else {
+        videoTrigger.value = videoUrls.length
+        window.scrollTo({ top: 0 })
+    }
+}
 </script>
 
 <template>
     <section class="section">
-        <div class="video-sec" v-show="videoTrigger < 3">
-            <!-- <div class="video-sec" v-show="videoTrigger < 3" v-if="data?.isVideoExposureNeeded === 'Y'"> -->
+        <div
+            class="video-sec"
+            v-if="
+                videoTrigger < 3 &&
+                !route.query.novideo &&
+                missionStore.data?.isVideoExposureNeeded === 'Y'
+            "
+            @click="nextVideo"
+        >
             <video
                 preload="auto"
                 playsinline
                 webkit-playsinline
+                @ended="handleVideoEnd(i)"
                 v-for="(url, i) in videoUrls"
                 :key="url"
                 v-show="i === videoTrigger"
                 muted
                 autoplay
-                @click="nextVideo"
+                ref="videoRefs"
                 :class="['video-item', { active: i === videoTrigger }]"
             >
                 <source :src="url" type="video/mp4" />
@@ -236,7 +292,14 @@ watch(
                         <dt>키워드 검색</dt>
                         <dd>
                             <p class="gray-txt">네이버 앱에서 복사된 키워드를 직접 검색</p>
-                            <img class="search-img" src="../assets/imgs/img_search.png" alt="" />
+                            <div class="img-wrap">
+                                <strong>{{ missionStore.data?.workKeyword }}</strong>
+                                <img
+                                    class="search-img"
+                                    src="../assets/imgs/img_search_new.png"
+                                    alt=""
+                                />
+                            </div>
                         </dd>
                     </dl>
                 </li>
@@ -249,19 +312,31 @@ watch(
                             <div class="example-box">
                                 <span class="tit">
                                     <img src="../assets/imgs/ad.png" alt="" /> 제외
-                                    <em>1 페이지 9위</em>
+                                    <em
+                                        >{{
+                                            Math.floor(missionStore.data?.currentRank / 20) + 1
+                                        }}페이지 {{ missionStore.data?.currentRank % 20 }}위</em
+                                    >
                                 </span>
                                 <div class="box">
-                                    <img src="../assets/imgs/test-thumb.png" alt="" />
+                                    <img :src="missionStore.data?.imageUrl" alt="" />
+
                                     <dl>
                                         <dt>
-                                            씨게이트 외장하드 4TB 데이터<br />복구 외장 HDD 4테라
-                                            전용
+                                            {{ missionStore.restText }}
                                         </dt>
                                         <dd>
-                                            <span class="price"> 209,900원 </span>
-                                            <span class="cul">씨게이트공식스토어</span>
-                                            <span class="star">4.9(434) &nbsp; 구매 304 </span>
+                                            <span class="price"
+                                                >{{
+                                                    missionStore.data?.lprice
+                                                        ? addComma(missionStore.data?.lprice)
+                                                        : ''
+                                                }}원</span
+                                            >
+                                            <span class="cul">{{
+                                                missionStore.data?.mallName
+                                            }}</span>
+                                            <!-- <span class="star">4.9(434) &nbsp; 구매 304 </span> -->
                                         </dd>
                                     </dl>
                                 </div>
@@ -319,33 +394,37 @@ watch(
                 </li>
             </ul>
         </template>
-        <template v-else-if="startMission > 0">
+        <template v-else-if="startMission > 0 || route.query.mission">
             <p class="dsc">네이버 가격비교 탭에서 하단의<br />상품을 찾아주세요.</p>
             <div class="w-box">
-                <img :src="data?.imageUrl" alt="" />
+                <img :src="missionStore.data?.imageUrl" alt="" />
             </div>
             <div class="dsc-box">
                 <img src="../assets/imgs/ad.png" alt="" />
                 제외
                 <em
-                    >{{ Math.floor(data?.currentRank / 20) + 1 }}페이지
-                    {{ data?.currentRank % 20 }}위</em
+                    >{{ Math.floor(missionStore.data?.currentRank / 20) + 1 }}페이지
+                    {{ missionStore.data?.currentRank % 20 }}위</em
                 >
             </div>
             <div class="text-box">
-                <strong>{{ boldText }}</strong>
+                <strong>{{ missionStore.boldText }}</strong>
                 <p class="title">
-                    {{ restText }}
+                    {{ missionStore.restText }}
                 </p>
-                <span class="price">{{ addComma(data?.lprice) }}원</span>
-                <span class="cul">{{ data?.mallName }}</span>
+                <span class="price"
+                    >{{
+                        missionStore.data?.lprice ? addComma(missionStore.data?.lprice) : ''
+                    }}원</span
+                >
+                <span class="cul">{{ missionStore.data?.mallName }}</span>
             </div>
             <span
                 class="change-mission"
                 @click="
                     () => {
                         startMission = 0
-                        getData(data?.logId)
+                        getData(missionStore.data?.logId)
                     }
                 "
                 >미션 상품을 변경하기
@@ -374,7 +453,7 @@ watch(
             </button>
             <button
                 class="gray"
-                @click="() => showMessage(data?.workKeyword)"
+                @click="() => showMessage(missionStore.data?.workKeyword)"
                 v-if="startMission == 1"
             >
                 키워드 복사
@@ -409,7 +488,7 @@ watch(
         top: 0;
         left: 0;
         @include flex();
-        background: #000;
+        background: #f8f8f8;
         width: 100vw;
         height: 100vh;
         z-index: 2;
@@ -511,7 +590,7 @@ watch(
         height: 100%;
         font-size: 22px;
         border-radius: 10px;
-        font-weight: 600;
+        font-weight: 500;
         padding: 17px 0;
         display: inline-block;
         text-align: center;
@@ -555,7 +634,8 @@ watch(
     color: #40474d;
     text-align: center;
     font-weight: 600;
-    margin: 20px 0 15px 0;
+    // margin: 20px 0 15px 0;
+    margin: 5% 0 3% 0;
     line-height: 1.2;
     font-size: 25px;
 
@@ -652,6 +732,19 @@ watch(
             color: #9ea7ad;
         }
 
+        .img-wrap {
+            position: relative;
+            strong {
+                position: absolute;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                color: #03cc64;
+                font-size: 25px;
+                top: 50%;
+                font-weight: 600;
+                width: max-content;
+            }
+        }
         .search-img {
             box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
         }
@@ -822,11 +915,12 @@ watch(
 
 .w-box {
     box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
-    width: 150px;
-    height: 150px;
+    width: 35%;
+    // height: 150px;
     border-radius: 15px;
     overflow: hidden;
-    margin-top: 25px;
+    margin-top: 6%;
+    aspect-ratio: 1 / 1;
     @include flex();
 
     img {
@@ -838,17 +932,17 @@ watch(
     background: #fff;
     border-radius: 30px;
     box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
-    padding: 10px;
+    padding: 7px;
     overflow: hidden;
     @include flex(center, center);
-    font-size: 25px;
+    font-size: 23px;
     font-weight: 600;
     margin-top: 15px;
     color: #444444;
 
     img {
         display: inline-block;
-        width: 80px;
+        width: 70px;
         margin-right: 10px;
     }
 
@@ -892,7 +986,7 @@ watch(
 .change-mission {
     color: #636c73;
     font-weight: 500;
-    font-size: 22px;
+    font-size: 20px;
     margin-top: 20px;
 
     img {

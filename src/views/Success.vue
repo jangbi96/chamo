@@ -4,13 +4,9 @@ import { useRoute } from 'vue-router'
 import 'vue3-carousel/carousel.css'
 import { ref } from 'vue'
 
-
 const close = () => {
-    window.close();
+    window.close()
 }
-
-
-
 </script>
 
 <template>
@@ -25,7 +21,7 @@ const close = () => {
                 <img class="firework" src="../assets/imgs/firework.png" alt="" />
             </transition>
 
-            <transition name="fade-slide" appear>
+            <transition name="fade-slide2" appear>
                 <img class="present" src="../assets/imgs/present.png" alt="" />
             </transition>
 
@@ -45,9 +41,10 @@ const close = () => {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: start;
-    padding-top: 100px;
-
+    justify-content: center;
+    position: relative;
+    top: -28px;
+    // padding-top: 18%;
     button {
         width: 90%;
         display: inline-block;
@@ -56,17 +53,16 @@ const close = () => {
         color: #fff;
         padding: 15px 0;
         font-weight: 500;
-        font-size: 25px;
+        font-size: 21px;
         position: fixed;
-
-        bottom: 20px;
+        bottom: 5%;
     }
 
     h1 {
-        color: #04c75b;
+        color: #10a948;
         font-weight: 700;
-        font-size: 45px;
-        margin-bottom: 10px;
+        font-size: 43px;
+        margin-bottom: 5%;
     }
 
     p {
@@ -74,26 +70,26 @@ const close = () => {
         color: #989898;
         text-align: center;
         line-height: 1.4;
-        margin-bottom: 20px;
+        margin-bottom: 5%;
     }
 }
 
 .firework {
-    width: 250px;
     position: relative;
-    top: 30px;
+    width: 43%;
+    transform: scaleY(1.1);
 }
 
 .present {
-    width: 250px;
+    width: 47%;
     position: relative;
 }
 
 .coin {
     position: absolute;
-    width: 130px;
+    width: 26%;
     z-index: 1;
-    top: 90px;
+    top: 48px;
 }
 
 .obs {
@@ -115,10 +111,24 @@ const close = () => {
 
 .fade-slide-enter-from {
     opacity: 0;
-    transform: translateY(-20px);
+    transform: translateY(-20px) scaleY(1.1);
 }
 
 .fade-slide-enter-to {
+    opacity: 1;
+    transform: translateY(0) scaleY(1.1);
+}
+
+.fade-slide2-enter-active {
+    transition: all 0.8s ease-out;
+}
+
+.fade-slide2-enter-from {
+    opacity: 0;
+    transform: translateY(-20px);
+}
+
+.fade-slide2-enter-to {
     opacity: 1;
     transform: translateY(0);
 }

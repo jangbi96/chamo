@@ -9,7 +9,6 @@ const router = createRouter({
         return { top: 0 }
     },
     routes: [
-       
         {
             path: '/howto',
             name: 'howto',

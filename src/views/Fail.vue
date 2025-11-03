@@ -28,8 +28,8 @@ const close = () => {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: start;
-    padding-top: 100px;
+    justify-content: center;
+    // padding-top: 100px;
 
     button {
         width: 90%;
@@ -39,10 +39,10 @@ const close = () => {
         color: #fff;
         padding: 15px 0;
         font-weight: 500;
-        font-size: 25px;
-        position: fixed;
+        font-size: 21px;
 
-        bottom: 20px;
+        position: fixed;
+        bottom: 5%;
     }
 
     h1 {
@@ -88,7 +88,7 @@ const close = () => {
 
     img {
         margin: 0 auto;
-        width: 80%;
+        width: 70%;
     }
 }
 </style>

@@ -5,6 +5,7 @@ import 'vue3-carousel/carousel.css'
 import axios from 'axios'
 import { useIdleTimerStore } from '@/stores/timer'
 import { useMissionStore } from '@/stores/useMissionStore'
+import { useShowvideoStore } from '@/stores/useShowvideoStore'
 const videoUrls = [
     'https://img.lightning.ai.kr/introduction1.mp4',
     'https://img.lightning.ai.kr/introduction2.mp4',
@@ -33,6 +34,7 @@ const data = ref<any>(null)
 // --- 기존 코드 내에 추가 ---
 const videoRefs = ref<HTMLVideoElement[]>([])
 const canClickNext = ref(false) // 현재 영상이 끝났을 때만 true
+const viewVideo = useShowvideoStore()
 
 /* 키워드복사횟수, 정답입력횟수, 정답체크 진행 */
 const copyCnt = ref(0)
@@ -173,6 +175,7 @@ async function record(state: 'submited' | 'end') {
 //         console.log(error)
 //     }
 // }
+
 async function getData(logId?: string) {
     try {
         const params = {
@@ -196,10 +199,16 @@ async function getData(logId?: string) {
 function handleClick() {
     startMission.value = 3
 
+    const appUrl = 'naversearchapp://'
+    const webUrl = 'https://m.naver.com'
+    // 앱 열기 시도
+    window.location.href = appUrl
+
     // 모바일 Safari 안전하게 새 탭 열기
     setTimeout(() => {
-        window.open('https://www.naver.com/')
-    }, 0)
+        // window.open('https://www.naver.com/')
+        window.open(webUrl)
+    }, 500)
 }
 
 onMounted(() => {
@@ -256,7 +265,7 @@ function handleVideoEnd(index: number) {
             class="video-sec"
             v-if="
                 videoTrigger < 3 &&
-                !route.query.novideo &&
+                !viewVideo.novideo &&
                 missionStore.data?.isVideoExposureNeeded === 'Y'
             "
             @click="nextVideo"
@@ -432,51 +441,50 @@ function handleVideoEnd(index: number) {
             </span>
         </template>
 
-        <div class="foot-btns" :class="{ showInput: startMission == 3 }">
-            <input
-                ref="domref"
-                type="text"
-                v-model="inputValue"
-                class="sendinput"
-                :class="{ error: wrong }"
-                v-if="startMission == 3"
-                placeholder="첫번째 태그를 입력해주세요"
-            />
-            <button
-                class="prevbtn"
-                @click="() => router.push({ path: '/howto', query: { ...route.query } })"
-            >
-                참여방법 확인
-            </button>
-            <button class="nextbtn" @click="() => (startMission = 1)" v-if="startMission == 0">
-                미션 바로하기
-            </button>
-            <button
-                class="gray"
-                @click="() => showMessage(missionStore.data?.workKeyword)"
-                v-if="startMission == 1"
-            >
-                키워드 복사
-            </button>
-
-            <button class="nextbtn" v-if="startMission === 2" @click="handleClick">
-                미션 시작하기
-            </button>
-            <button class="nextbtn" @click="() => record('submited')" v-else-if="startMission == 3">
-                정답 제출
-            </button>
-        </div>
-
         <transition name="fade-up">
             <div class="toast" v-if="isCopy">키워드 복사 완료!</div>
         </transition>
     </section>
+    <div class="foot-btns" :class="{ showInput: startMission == 3 }">
+        <input
+            ref="domref"
+            type="text"
+            v-model="inputValue"
+            class="sendinput"
+            :class="{ error: wrong }"
+            v-if="startMission == 3"
+            placeholder="첫번째 태그를 입력해주세요"
+        />
+        <button
+            class="prevbtn"
+            @click="() => router.push({ path: '/howto', query: { ...route.query } })"
+        >
+            참여방법 확인
+        </button>
+        <button class="nextbtn" @click="() => (startMission = 1)" v-if="startMission == 0">
+            미션 바로하기
+        </button>
+        <button
+            class="gray"
+            @click="() => showMessage(missionStore.data?.workKeyword)"
+            v-if="startMission == 1"
+        >
+            키워드 복사
+        </button>
+
+        <button class="nextbtn" v-if="startMission === 2" @click="handleClick">
+            미션 시작하기
+        </button>
+        <button class="nextbtn" @click="() => record('submited')" v-else-if="startMission == 3">
+            정답 제출
+        </button>
+    </div>
 </template>
 
 <style scoped lang="scss">
 .section {
     background: #f8f8f8;
-    padding: 50px 0 200px 0;
+    padding: 5%0 200px 0;
     display: flex;
     flex-direction: column;
     /* justify-content: center; */
@@ -488,7 +496,7 @@ function handleVideoEnd(index: number) {
         top: 0;
         left: 0;
         @include flex();
-        background: #f8f8f8;
+        background: #fff;
         width: 100vw;
         height: 100vh;
         z-index: 2;
@@ -613,19 +621,19 @@ function handleVideoEnd(index: number) {
 }
 
 .poi {
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 500;
     border-radius: 50px;
     background: #28a163;
-    width: 140px;
-    height: 38px;
+    width: 130px;
+    height: 33px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #fff;
 
     .coinimg {
-        width: 25px;
+        width: 23px;
         margin-right: 5px;
     }
 }
@@ -635,12 +643,12 @@ function handleVideoEnd(index: number) {
     text-align: center;
     font-weight: 600;
     // margin: 20px 0 15px 0;
-    margin: 5% 0 3% 0;
+    margin: 2% 0 3% 0;
     line-height: 1.2;
-    font-size: 25px;
+    font-size: 20px;
 
     em {
-        font-size: 35px;
+        font-size: 25px;
         font-weight: 800;
         color: #26b968;
     }
@@ -654,13 +662,12 @@ function handleVideoEnd(index: number) {
 .howto-step {
     display: flex;
     flex-direction: column;
-    margin-top: 15px;
+    margin-top: 2%;
     width: calc(100% - 40px);
     justify-content: space-between;
     margin-bottom: 20px;
 
     .search-img {
-        width: 100%;
     }
 
     .icon {
@@ -676,8 +683,11 @@ function handleVideoEnd(index: number) {
         @include flex();
         align-items: start;
         justify-content: start;
-        padding-bottom: 35px;
+        padding-bottom: 7%;
         position: relative;
+        &:last-child {
+            padding-bottom: 0;
+        }
 
         &::before {
             content: '';
@@ -721,14 +731,14 @@ function handleVideoEnd(index: number) {
 
         dt {
             color: #40474d;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 600;
         }
 
         .gray-txt {
-            font-size: 17px;
+            font-size: 16px;
             font-weight: 500;
-            margin: 10px 0 10px;
+            margin: 3% 0;
             color: #9ea7ad;
         }
 
@@ -739,13 +749,15 @@ function handleVideoEnd(index: number) {
                 left: 50%;
                 transform: translate(-50%, -50%);
                 color: #03cc64;
-                font-size: 25px;
+                font-size: 20px;
                 top: 50%;
                 font-weight: 600;
                 width: max-content;
             }
         }
         .search-img {
+            width: 95%;
+
             box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
         }
     }
@@ -837,8 +849,8 @@ function handleVideoEnd(index: number) {
     padding: 10px 30px 0;
 
     .qs {
-        padding-top: 30px;
-        font-size: 17px;
+        padding-top: 5%;
+        font-size: 16px;
         color: #636c73;
         background: url('../assets/imgs/arrow-close.png') no-repeat right bottom;
         background-size: 10px;
@@ -911,6 +923,7 @@ function handleVideoEnd(index: number) {
     text-align: center;
     line-height: 1.4;
     font-size: 17px;
+    margin-top: 3%;
 }
 
 .w-box {
@@ -932,10 +945,10 @@ function handleVideoEnd(index: number) {
     background: #fff;
     border-radius: 30px;
     box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
-    padding: 7px;
+    padding: 5px;
     overflow: hidden;
     @include flex(center, center);
-    font-size: 23px;
+    font-size: 21px;
     font-weight: 600;
     margin-top: 15px;
     color: #444444;
@@ -958,7 +971,7 @@ function handleVideoEnd(index: number) {
 
     margin-top: 10px;
     width: 90%;
-    padding: 20px;
+    padding: 15px;
     background: #fff;
     border-radius: 10px;
     box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
@@ -986,11 +999,11 @@ function handleVideoEnd(index: number) {
 .change-mission {
     color: #636c73;
     font-weight: 500;
-    font-size: 20px;
-    margin-top: 20px;
+    font-size: 18px;
+    margin-top: 5%;
 
     img {
-        width: 12px;
+        width: 10px;
         position: relative;
         top: 1px;
         margin-left: 10px;

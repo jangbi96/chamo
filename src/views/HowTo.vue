@@ -3,6 +3,7 @@ import { RouterLink, useRouter } from 'vue-router'
 import { useRoute } from 'vue-router'
 import 'vue3-carousel/carousel.css'
 import { useMissionStore } from '@/stores/useMissionStore'
+import { useShowvideoStore } from '@/stores/useShowvideoStore'
 
 import {
     Carousel,
@@ -19,6 +20,7 @@ const carouselConfig = {
 }
 
 const missionStore = useMissionStore()
+const viewVideo = useShowvideoStore()
 const router = useRouter()
 const route = useRoute()
 
@@ -26,11 +28,21 @@ const step = ref(1)
 
 const prevSlide = () => {
     if (step.value === 1) {
-        router.push({ path: '/', query: { ...route.query, novideo: 'true', mission: 'false' } })
+        viewVideo.setData(true)
+        router.push({ path: '/', query: { ...route.query, mission: 'false' } })
     }
     carousel.value?.prev()
 }
 const nextSlide = () => {
+    if (step.value === 5) {
+        // sessionStorage.setItem('novideo', 'true')
+        viewVideo.setData(true)
+        router.push({
+            path: '/',
+            query: { ...route.query, mission: 'true' },
+        })
+    }
+
     carousel.value?.next()
 }
 function addComma(num: string | number) {
@@ -124,22 +136,7 @@ const onSlideChange = (a: any) => {
 
         <div class="foot-btns">
             <button class="prevbtn" @click="prevSlide">이전</button>
-            <button
-                class="nextbtn"
-                @click="
-                    () => {
-                        if (step === 5) {
-                            router.push({
-                                path: '/',
-                                query: { ...route.query, mission: 'true', novideo: 'true' },
-                            })
-                        }
-                        {
-                            nextSlide()
-                        }
-                    }
-                "
-            >
+            <button class="nextbtn" @click="nextSlide">
                 {{ step == 5 ? '미션 바로하기' : '다음' }}
             </button>
         </div>
@@ -149,7 +146,7 @@ const onSlideChange = (a: any) => {
 <style scoped lang="scss">
 .section {
     background: #f8f8f8;
-    padding: 50px 0;
+    padding: 10% 0;
     display: flex;
     flex-direction: column;
     /* justify-content: center; */
@@ -163,7 +160,7 @@ const onSlideChange = (a: any) => {
     position: relative;
     z-index: 1;
     gap: 5px;
-    margin-bottom: 20px;
+    margin-bottom: 1%;
 
     li {
         width: 10px;
@@ -186,6 +183,7 @@ const onSlideChange = (a: any) => {
         line-height: 1.2;
         font-weight: 600;
         margin-bottom: 10px;
+        font-size: 25px;
 
         em {
             color: #04c75b;
@@ -246,6 +244,11 @@ const onSlideChange = (a: any) => {
         .slide3-txt {
             position: absolute;
         }
+        &:last-child {
+            img {
+                width: 91%;
+            }
+        }
         .slide1-txt {
             top: 26.8%;
             font-weight: 500;
@@ -258,13 +261,13 @@ const onSlideChange = (a: any) => {
         .slide2-txt {
             color: #525a61;
             left: 25%;
-            top: 11.8%;
+            top: 11.4%;
             font-weight: 600;
             width: max-content;
         }
         .slide3-txt {
             display: flex;
-            top: 44.3%;
+            top: 43.8%;
             left: 6.1%;
             width: 90%;
 
@@ -278,19 +281,22 @@ const onSlideChange = (a: any) => {
             dt {
                 color: #40474d;
                 font-weight: 600;
-                font-size: 18px;
+                font-size: 16px;
                 line-height: 1.1;
-                margin-bottom: 5px;
+                margin-bottom: 3px;
                 word-break: keep-all;
             }
             span {
                 display: block;
                 color: #636c73;
+                font-size: 15px;
+
                 font-weight: 700;
-                margin-bottom: 5px;
+                margin-bottom: 2px;
             }
             em {
                 color: #636c73;
+                font-size: 15px;
                 font-weight: 500;
             }
         }

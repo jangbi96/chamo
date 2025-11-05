@@ -90,7 +90,7 @@ const onSlideChange = (a: any) => {
                     <img src="../assets/imgs/step2_new.png" />
                 </div>
             </Slide>
-            <Slide class="slide-item">
+            <Slide class="slide-item third">
                 <h1>상품이 페이지에서<br /><em>미션상품을 찾기</em></h1>
                 <p>
                     <span class="circle"></span>
@@ -118,7 +118,9 @@ const onSlideChange = (a: any) => {
 
                     상세페이지 하단으로 이동
                 </p>
-                <img src="../assets/imgs/step4.png" />
+                <div class="slide-wrap">
+                    <img src="../assets/imgs/step4.png" />
+                </div>
             </Slide>
             <Slide class="slide-item">
                 <h1>
@@ -130,7 +132,9 @@ const onSlideChange = (a: any) => {
                     미션 화면에서<br />
                     정답을 입력해주세요.
                 </p>
-                <img src="../assets/imgs/step5.png" />
+                <div class="slide-wrap">
+                    <img src="../assets/imgs/step5.png" />
+                </div>
             </Slide>
         </Carousel>
 
@@ -160,7 +164,7 @@ const onSlideChange = (a: any) => {
     position: relative;
     z-index: 1;
     gap: 5px;
-    margin-bottom: 1%;
+    margin-bottom: 4%;
 
     li {
         width: 10px;
@@ -177,7 +181,7 @@ const onSlideChange = (a: any) => {
 .slide-item {
     display: flex;
     flex-direction: column;
-
+    justify-content: start;
     h1 {
         text-align: center;
         line-height: 1.2;
@@ -244,9 +248,10 @@ const onSlideChange = (a: any) => {
         .slide3-txt {
             position: absolute;
         }
-        &:last-child {
+
+        &:last-of-type {
             img {
-                width: 91%;
+                margin: 0 auto;
             }
         }
         .slide1-txt {
@@ -333,6 +338,13 @@ const onSlideChange = (a: any) => {
             }
         }
     }
+    &:nth-child(4) {
+        .circle {
+            &::after {
+                height: 310px;
+            }
+        }
+    }
 
     &:last-child {
         .circle {
@@ -389,5 +401,15 @@ const onSlideChange = (a: any) => {
 }
 .slide-item {
     position: relative;
+    &.third {
+        .slide3-txt {
+            top: 44%;
+            left: 8.7%;
+            width: 83%;
+        }
+        img {
+            width: 91%;
+        }
+    }
 }
 </style>

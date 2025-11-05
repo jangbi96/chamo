@@ -2,8 +2,8 @@
 import { RouterLink, useRouter } from 'vue-router'
 import { useRoute } from 'vue-router'
 import 'vue3-carousel/carousel.css'
-import { useMissionStore } from '@/stores/useMissionStore'
-import { useShowvideoStore } from '@/stores/useShowvideoStore'
+import { useMissionStore } from '../stores/useMissionStore'
+import { useShowvideoStore } from '../stores/useShowvideoStore'
 
 import {
     Carousel,

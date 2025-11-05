@@ -3,9 +3,9 @@ import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import 'vue3-carousel/carousel.css'
 import axios from 'axios'
-import { useIdleTimerStore } from '@/stores/timer'
-import { useMissionStore } from '@/stores/useMissionStore'
-import { useShowvideoStore } from '@/stores/useShowvideoStore'
+import { useIdleTimerStore } from '../stores/timer'
+import { useMissionStore } from '../stores/useMissionStore'
+import { useShowvideoStore } from '../stores/useShowvideoStore'
 const videoUrls = [
     'https://img.lightning.ai.kr/introduction1.mp4',
     'https://img.lightning.ai.kr/introduction2.mp4',
@@ -129,7 +129,7 @@ async function record(state: 'submited' | 'end') {
         // 정답일경우
         if (state === 'submited') {
             const res1 = await axios.post(
-                `http://admin.lightning.ai.kr/api/mission/attemptRecord?${toQueryString(params)}`,
+                `https://admin.lightning.ai.kr/api/mission/attemptRecord?${toQueryString(params)}`,
             )
 
             if (res1) {
@@ -140,7 +140,7 @@ async function record(state: 'submited' | 'end') {
         // 연결이 끊긴경우
         if (state === 'end') {
             const res1 = await axios.post(
-                `http://admin.lightning.ai.kr/api/mission/attemptRecord?${toQueryString(params)}`,
+                `https://admin.lightning.ai.kr/api/mission/attemptRecord?${toQueryString(params)}`,
             )
         }
     } catch (error: any) {
@@ -186,7 +186,7 @@ async function getData(logId?: string) {
         }
 
         const res: any = await axios.get(
-            `http://admin.lightning.ai.kr/api/mission/info?${toQueryString(params)}`,
+            `https://admin.lightning.ai.kr/api/mission/info?${toQueryString(params)}`,
         )
 
         // store에 데이터 저장

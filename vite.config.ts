@@ -12,7 +12,7 @@ export default defineConfig({
         port: 3000,
         proxy: {
             '/api': {
-                target: 'http://admin.lightning.ai.kr',
+                target: 'https://admin.lightning.ai.kr',
                 changeOrigin: true,
                 rewrite: (path) => path.replace(/^\/api/, ''), // /api 제거
             },

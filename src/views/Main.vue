@@ -196,46 +196,66 @@ async function getData(logId?: string) {
     }
 }
 
-function handleClick() {
-    startMission.value = 3
+// function handleClick() {
+//     startMission.value = 3
 
-    const appUrl = 'naversearchapp://'
-    const webUrl = 'https://m.naver.com'
-    // 앱 열기 시도
-    window.location.href = appUrl
+//     const appUrl = 'naversearchapp://'
+//     const webUrl = 'https://m.naver.com'
+//     // 앱 열기 시도
+//     window.location.href = appUrl
 
-    // 모바일 Safari 안전하게 새 탭 열기
+//     // 모바일 Safari 안전하게 새 탭 열기
+//     setTimeout(() => {
+//         window.open(webUrl)
+//     }, 500)
+// }
+const openNaverApp = () => {
+    const appUrl = 'naversearchapp://default?version=1'
+    const webUrl = 'https://m.naver.com/'
+
+    const now = Date.now()
+
+    // 1️⃣ 유저가 클릭했을 때 앱 실행 시도
+    const link = document.createElement('a')
+    link.href = appUrl
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    // 2️⃣ 앱이 안 열리면 fallback (앱 미설치)
     setTimeout(() => {
-        // window.open('https://www.naver.com/')
-        window.open(webUrl)
-    }, 500)
+        if (Date.now() - now < 2000) {
+            // 앱이 실행되지 않았다고 판단되면
+            window.location.href = webUrl // 웹 fallback (또는 스토어로 이동)
+        }
+    }, 1000)
+
+    startMission.value = 3
 }
+const naverAppCheckTimer = ref<any>(null)
+const agent = ref('android')
+function handleClick() {
+    const userAgent = navigator.userAgent.toLowerCase() //userAgent 문자열 값 받아오기
 
-onMounted(() => {
-    idleTimer.start(() => record('end'))
+    const appLink = 'naversearchapp://default?version=1'
+    const webUrl = 'https://m.naver.com/'
 
-    getData()
+    window.location.href = appLink
 
-    // 비디오 끝날 때마다 이벤트 연결
-    videoRefs.value.forEach((video, index) => {
-        video.addEventListener('ended', () => {
-            console.log('Video ended', index)
-            if (index < videoUrls.length - 1) {
-                canClickNext.value = true
-            } else {
-                videoTrigger.value = videoUrls.length
-                window.scrollTo({ top: 0 })
-            }
-        })
-    })
-    if (route.query.mission == 'true') {
-        startMission.value = 1
-    }
-})
+    // 1️⃣ 앱 실행 시도
 
-onBeforeUnmount(() => {
-    idleTimer.stop()
-})
+    const now = Date.now()
+    // 2️⃣ 일정 시간 후에도 페이지가 전환되지 않았다면 → 앱 실행 실패로 간주
+    setTimeout(() => {
+        const elapsed = Date.now() - now
+        // 앱이 정상적으로 열리면 이 코드가 실행되지 않거나,
+        // 페이지 포커스가 이동하면서 elapsed가 매우 커지지 않음
+        if (elapsed < 1500) {
+            window.open(webUrl, '_blank')
+        }
+    }, 1200)
+    startMission.value = 3
+}
 
 watch(
     () => startMission.value,
@@ -257,6 +277,59 @@ function handleVideoEnd(index: number) {
         window.scrollTo({ top: 0 })
     }
 }
+
+function maskName(str: string, maskChar = 'O') {
+    if (typeof str !== 'string') return str
+    const s = str.trim()
+    const len = s.length
+
+    if (len === 0) return s
+    if (len === 1) return s // 1글자는 그대로
+    if (len === 2) return s[0] + maskChar // 2글자면 앞 1글자 + O
+    // 3글자 이상이면 앞 2글자 + (나머지 길이만큼 O)
+    return s.slice(0, 2) + maskChar.repeat(len - 2)
+}
+
+const naverRedirect = ref<string>('')
+
+onMounted(() => {
+    idleTimer.start(() => record('end'))
+
+    getData()
+
+    // 비디오 끝날 때마다 이벤트 연결
+    videoRefs.value.forEach((video, index) => {
+        video.addEventListener('ended', () => {
+            console.log('Video ended', index)
+            if (index < videoUrls.length - 1) {
+                canClickNext.value = true
+            } else {
+                videoTrigger.value = videoUrls.length
+                window.scrollTo({ top: 0 })
+            }
+        })
+    })
+    if (route.query.mission == 'true') {
+        startMission.value = 1
+    }
+
+    const userAgent = navigator.userAgent.toLowerCase() //userAgent 문자열 값 받아오기
+
+    if (userAgent.indexOf('android') > -1) {
+        //안드로이드일 때 실행할 x동작
+        agent.value = 'android'
+    } else if (
+        userAgent.indexOf('iphone') > -1 ||
+        userAgent.indexOf('ipad') > -1 ||
+        userAgent.indexOf('ipod') > -1
+    ) {
+        agent.value = 'apple'
+    }
+})
+
+onBeforeUnmount(() => {
+    idleTimer.stop()
+})
 </script>
 
 <template>
@@ -302,7 +375,7 @@ function handleVideoEnd(index: number) {
                         <dd>
                             <p class="gray-txt">네이버 앱에서 복사된 키워드를 직접 검색</p>
                             <div class="img-wrap">
-                                <strong>{{ missionStore.data?.workKeyword }}</strong>
+                                <strong>{{ missionStore.data?.workKeyword ?? '' }}</strong>
                                 <img
                                     class="search-img"
                                     src="../assets/imgs/img_search_new.png"
@@ -321,7 +394,7 @@ function handleVideoEnd(index: number) {
                             <div class="example-box">
                                 <span class="tit">
                                     <img src="../assets/imgs/ad.png" alt="" /> 제외
-                                    <em
+                                    <em v-if="missionStore.data"
                                         >{{
                                             Math.floor(missionStore.data?.currentRank / 20) + 1
                                         }}페이지 {{ missionStore.data?.currentRank % 20 }}위</em
@@ -343,7 +416,7 @@ function handleVideoEnd(index: number) {
                                                 }}원</span
                                             >
                                             <span class="cul">{{
-                                                missionStore.data?.mallName
+                                                maskName(missionStore.data?.mallName)
                                             }}</span>
                                             <!-- <span class="star">4.9(434) &nbsp; 구매 304 </span> -->
                                         </dd>
@@ -417,7 +490,7 @@ function handleVideoEnd(index: number) {
                 >
             </div>
             <div class="text-box">
-                <strong>{{ missionStore.boldText }}</strong>
+                <!-- <strong>{{ missionStore.boldText }}</strong> -->
                 <p class="title">
                     {{ missionStore.restText }}
                 </p>
@@ -426,7 +499,7 @@ function handleVideoEnd(index: number) {
                         missionStore.data?.lprice ? addComma(missionStore.data?.lprice) : ''
                     }}원</span
                 >
-                <span class="cul">{{ missionStore.data?.mallName }}</span>
+                <span class="cul">{{ maskName(missionStore.data?.mallName) }}</span>
             </div>
             <span
                 class="change-mission"
@@ -472,9 +545,17 @@ function handleVideoEnd(index: number) {
             키워드 복사
         </button>
 
-        <button class="nextbtn" v-if="startMission === 2" @click="handleClick">
+        <button class="nextbtn" v-if="startMission === 2 && agent === 'apple'" @click="handleClick">
             미션 시작하기
         </button>
+        <a
+            class="nextbtn"
+            v-if="startMission === 2 && agent === 'android'"
+            href="naversearchapp://default?version=1"
+            @click.prevent="openNaverApp"
+        >
+            미션 시작하기
+        </a>
         <button class="nextbtn" @click="() => record('submited')" v-else-if="startMission == 3">
             정답 제출
         </button>
@@ -484,7 +565,7 @@ function handleVideoEnd(index: number) {
 <style scoped lang="scss">
 .section {
     background: #f8f8f8;
-    padding: 5%0 200px 0;
+    padding: 5% 0 200px 0;
     display: flex;
     flex-direction: column;
     /* justify-content: center; */
@@ -610,6 +691,8 @@ function handleVideoEnd(index: number) {
     }
 
     .nextbtn {
+        height: auto;
+        line-height: normal;
         background: #03cc64;
         color: #fff;
     }

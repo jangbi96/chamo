@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import 'vue3-carousel/carousel.css'
 import axios from 'axios'
@@ -175,6 +175,10 @@ async function record(state: 'submited' | 'end') {
 //         console.log(error)
 //     }
 // }
+const nowTime = computed(() => {
+    const now = new Date()
+    return `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`
+})
 
 async function getData(logId?: string) {
     try {
@@ -196,22 +200,10 @@ async function getData(logId?: string) {
     }
 }
 
-// function handleClick() {
-//     startMission.value = 3
-
-//     const appUrl = 'naversearchapp://'
-//     const webUrl = 'https://m.naver.com'
-//     // 앱 열기 시도
-//     window.location.href = appUrl
-
-//     // 모바일 Safari 안전하게 새 탭 열기
-//     setTimeout(() => {
-//         window.open(webUrl)
-//     }, 500)
-// }
-const openNaverApp = () => {
+const openNaverAppForAndroid = () => {
     const appUrl = 'naversearchapp://default?version=1'
     const webUrl = 'https://m.naver.com/'
+    const storeUrl = 'https://play.google.com/store/apps/details?id=com.nhn.android.search'
 
     const now = Date.now()
 
@@ -224,37 +216,52 @@ const openNaverApp = () => {
 
     // 2️⃣ 앱이 안 열리면 fallback (앱 미설치)
     setTimeout(() => {
-        if (Date.now() - now < 2000) {
+        if (Date.now() - now < 2500) {
             // 앱이 실행되지 않았다고 판단되면
-            window.location.href = webUrl // 웹 fallback (또는 스토어로 이동)
+            const goToStore = window.confirm(
+                '네이버 앱이 설치되어 있지 않습니다.\n설치 페이지로 이동하시겠습니까?',
+            )
+            if (goToStore) {
+                window.location.href = storeUrl
+            }
         }
-    }, 1000)
+    }, 2000)
 
     startMission.value = 3
 }
-const naverAppCheckTimer = ref<any>(null)
 const agent = ref('android')
-function handleClick() {
+
+const naverAppCheckTimer = ref<any>(null)
+
+function openNaverAppForApple() {
     const userAgent = navigator.userAgent.toLowerCase() //userAgent 문자열 값 받아오기
 
     const appLink = 'naversearchapp://default?version=1'
     const webUrl = 'https://m.naver.com/'
-
-    window.location.href = appLink
-
-    // 1️⃣ 앱 실행 시도
-
     const now = Date.now()
-    // 2️⃣ 일정 시간 후에도 페이지가 전환되지 않았다면 → 앱 실행 실패로 간주
+    // var appstoreUrl = 'http://itunes.apple.com/kr/app/id393499958?mt=8'
+    var appstoreUrl = 'itms-apps://itunes.apple.com/kr/app/id393499958'
+    const isSafari = /^((?!chrome|crios|fxios).)*safari/i.test(userAgent)
+
+    // window.location.href = appLink
+    // 1️⃣ 유저가 클릭했을 때 앱 실행 시도
+    const link = document.createElement('a')
+    link.href = appLink
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    startMission.value = 3
+
     setTimeout(() => {
         const elapsed = Date.now() - now
-        // 앱이 정상적으로 열리면 이 코드가 실행되지 않거나,
-        // 페이지 포커스가 이동하면서 elapsed가 매우 커지지 않음
-        if (elapsed < 1500) {
-            window.open(webUrl, '_blank')
+        if (elapsed < 2500) {
+            // 앱이 안 열렸다고 보고 스토어 이동
+            if (window.confirm('네이버 앱 설치 페이지로 이동하시겠습니까?')) {
+                window.location.href = appstoreUrl
+            }
         }
-    }, 1200)
-    startMission.value = 3
+    }, 2000)
 }
 
 watch(
@@ -396,8 +403,8 @@ onBeforeUnmount(() => {
                                     <img src="../assets/imgs/ad.png" alt="" /> 제외
                                     <em v-if="missionStore.data"
                                         >{{
-                                            Math.floor(missionStore.data?.currentRank / 20) + 1
-                                        }}페이지 {{ missionStore.data?.currentRank % 20 }}위</em
+                                            Math.floor(missionStore.data?.currentRank / 40) + 1
+                                        }}페이지 {{ missionStore.data?.currentRank % 40 }}위</em
                                     >
                                 </span>
                                 <div class="box">
@@ -485,8 +492,8 @@ onBeforeUnmount(() => {
                 <img src="../assets/imgs/ad.png" alt="" />
                 제외
                 <em
-                    >{{ Math.floor(missionStore.data?.currentRank / 20) + 1 }}페이지
-                    {{ missionStore.data?.currentRank % 20 }}위</em
+                    >{{ Math.floor(missionStore.data?.currentRank / 40) + 1 }}페이지
+                    {{ missionStore.data?.currentRank % 40 }}위</em
                 >
             </div>
             <div class="text-box">
@@ -545,16 +552,21 @@ onBeforeUnmount(() => {
             키워드 복사
         </button>
 
-        <button class="nextbtn" v-if="startMission === 2 && agent === 'apple'" @click="handleClick">
+        <button
+            class="nextbtn"
+            v-if="startMission === 2 && agent === 'apple'"
+            @click="openNaverAppForApple"
+        >
             미션 시작하기
         </button>
         <a
             class="nextbtn"
             v-if="startMission === 2 && agent === 'android'"
             href="naversearchapp://default?version=1"
-            @click.prevent="openNaverApp"
+            @click.prevent="openNaverAppForAndroid"
         >
             미션 시작하기
+            {{ nowTime }}
         </a>
         <button class="nextbtn" @click="() => record('submited')" v-else-if="startMission == 3">
             정답 제출

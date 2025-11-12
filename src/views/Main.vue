@@ -201,7 +201,8 @@ async function getData(logId?: string) {
 }
 
 const openNaverAppForAndroid = () => {
-    const appUrl = 'naversearchapp://default?version=1'
+    // const appUrl = 'naversearchapp://default?version=1'
+    const appUrl = 'naversearchapp://inappbrowser?url=https://www.facebook.com/share/p/1FXg6CyJaB/&target=newdefault?version=1'
     const webUrl = 'https://m.naver.com/'
     const storeUrl = 'https://play.google.com/store/apps/details?id=com.nhn.android.search'
 
@@ -236,7 +237,8 @@ const naverAppCheckTimer = ref<any>(null)
 function openNaverAppForApple() {
     const userAgent = navigator.userAgent.toLowerCase() //userAgent 문자열 값 받아오기
 
-    const appLink = 'naversearchapp://default?version=1'
+    // const appLink = 'naversearchapp://default?version=1'
+    const appLink = 'naversearchapp://inappbrowser?url=https://www.facebook.com/share/p/1FXg6CyJaB/&target=newdefault?version=1'
     const webUrl = 'https://m.naver.com/'
     const now = Date.now()
     // var appstoreUrl = 'http://itunes.apple.com/kr/app/id393499958?mt=8'
@@ -253,15 +255,7 @@ function openNaverAppForApple() {
 
     startMission.value = 3
 
-    setTimeout(() => {
-        const elapsed = Date.now() - now
-        if (elapsed < 2500) {
-            // 앱이 안 열렸다고 보고 스토어 이동
-            if (window.confirm('네이버 앱 설치 페이지로 이동하시겠습니까?')) {
-                window.location.href = appstoreUrl
-            }
-        }
-    }, 2000)
+
 }
 
 watch(
@@ -341,34 +335,18 @@ onBeforeUnmount(() => {
 
 <template>
     <section class="section">
-        <div
-            class="video-sec"
-            v-if="
-                videoTrigger < 3 &&
-                !viewVideo.novideo &&
-                missionStore.data?.isVideoExposureNeeded === 'Y'
-            "
-            @click="nextVideo"
-        >
-            <video
-                preload="auto"
-                playsinline
-                webkit-playsinline
-                @ended="handleVideoEnd(i)"
-                v-for="(url, i) in videoUrls"
-                :key="url"
-                v-show="i === videoTrigger"
-                muted
-                autoplay
-                ref="videoRefs"
-                :class="['video-item', { active: i === videoTrigger }]"
-            >
+        <div class="video-sec" v-if="
+            videoTrigger < 3 &&
+            !viewVideo.novideo &&
+            missionStore.data?.isVideoExposureNeeded === 'Y'
+        " @click="nextVideo">
+            <video preload="auto" playsinline webkit-playsinline @ended="handleVideoEnd(i)"
+                v-for="(url, i) in videoUrls" :key="url" v-show="i === videoTrigger" muted autoplay ref="videoRefs"
+                :class="['video-item', { active: i === videoTrigger }]">
                 <source :src="url" type="video/mp4" />
             </video>
         </div>
-        <strong class="poi"
-            ><img class="coinimg" src="../assets/imgs/mini-coin.png" />선착순 미션</strong
-        >
+        <strong class="poi"><img class="coinimg" src="../assets/imgs/mini-coin.png" />선착순 미션</strong>
         <h1 class="main-txt">
             첫번째 관련태그 찾고<br />
             <em>포인트 받기</em>
@@ -383,11 +361,7 @@ onBeforeUnmount(() => {
                             <p class="gray-txt">네이버 앱에서 복사된 키워드를 직접 검색</p>
                             <div class="img-wrap">
                                 <strong>{{ missionStore.data?.workKeyword ?? '' }}</strong>
-                                <img
-                                    class="search-img"
-                                    src="../assets/imgs/img_search_new.png"
-                                    alt=""
-                                />
+                                <img class="search-img" src="../assets/imgs/img_search_new.png" alt="" />
                             </div>
                         </dd>
                     </dl>
@@ -401,11 +375,9 @@ onBeforeUnmount(() => {
                             <div class="example-box">
                                 <span class="tit">
                                     <img src="../assets/imgs/ad.png" alt="" /> 제외
-                                    <em v-if="missionStore.data"
-                                        >{{
-                                            Math.floor(missionStore.data?.currentRank / 40) + 1
-                                        }}페이지 {{ missionStore.data?.currentRank % 40 }}위</em
-                                    >
+                                    <em v-if="missionStore.data">{{
+                                        Math.floor(missionStore.data?.currentRank / 40) + 1
+                                        }}페이지 {{ missionStore.data?.currentRank % 40 }}위</em>
                                 </span>
                                 <div class="box">
                                     <img :src="missionStore.data?.imageUrl" alt="" />
@@ -415,13 +387,11 @@ onBeforeUnmount(() => {
                                             {{ missionStore.restText }}
                                         </dt>
                                         <dd>
-                                            <span class="price"
-                                                >{{
-                                                    missionStore.data?.lprice
-                                                        ? addComma(missionStore.data?.lprice)
-                                                        : ''
-                                                }}원</span
-                                            >
+                                            <span class="price">{{
+                                                missionStore.data?.lprice
+                                                    ? addComma(missionStore.data?.lprice)
+                                                    : ''
+                                            }}원</span>
                                             <span class="cul">{{
                                                 maskName(missionStore.data?.mallName)
                                             }}</span>
@@ -445,11 +415,7 @@ onBeforeUnmount(() => {
             </ul>
             <ul class="questions">
                 <li>
-                    <div
-                        @click="() => (active1 = !active1)"
-                        class="qs"
-                        :class="{ active: active1 }"
-                    >
+                    <div @click="() => (active1 = !active1)" class="qs" :class="{ active: active1 }">
                         관련 태그를 어떻게 찾는건가요?
                     </div>
                     <div v-if="active1" class="active-content">
@@ -462,11 +428,7 @@ onBeforeUnmount(() => {
                     </div>
                 </li>
                 <li>
-                    <div
-                        @click="() => (active2 = !active2)"
-                        class="qs"
-                        :class="{ active: active2 }"
-                    >
+                    <div @click="() => (active2 = !active2)" class="qs" :class="{ active: active2 }">
                         상품이 미션의 순위에 보이지 않아요.
                     </div>
                     <div v-if="active2" class="active-content">
@@ -491,32 +453,25 @@ onBeforeUnmount(() => {
             <div class="dsc-box">
                 <img src="../assets/imgs/ad.png" alt="" />
                 제외
-                <em
-                    >{{ Math.floor(missionStore.data?.currentRank / 40) + 1 }}페이지
-                    {{ missionStore.data?.currentRank % 40 }}위</em
-                >
+                <em>{{ Math.floor(missionStore.data?.currentRank / 40) + 1 }}페이지
+                    {{ missionStore.data?.currentRank % 40 }}위</em>
             </div>
             <div class="text-box">
                 <!-- <strong>{{ missionStore.boldText }}</strong> -->
                 <p class="title">
                     {{ missionStore.restText }}
                 </p>
-                <span class="price"
-                    >{{
-                        missionStore.data?.lprice ? addComma(missionStore.data?.lprice) : ''
-                    }}원</span
-                >
+                <span class="price">{{
+                    missionStore.data?.lprice ? addComma(missionStore.data?.lprice) : ''
+                    }}원</span>
                 <span class="cul">{{ maskName(missionStore.data?.mallName) }}</span>
             </div>
-            <span
-                class="change-mission"
-                @click="
-                    () => {
-                        startMission = 0
-                        getData(missionStore.data?.logId)
-                    }
-                "
-                >미션 상품을 변경하기
+            <span class="change-mission" @click="
+                () => {
+                    startMission = 0
+                    getData(missionStore.data?.logId)
+                }
+            ">미션 상품을 변경하기
                 <img src="../assets/imgs/arrow-go.png" alt="" />
             </span>
         </template>
@@ -526,47 +481,24 @@ onBeforeUnmount(() => {
         </transition>
     </section>
     <div class="foot-btns" :class="{ showInput: startMission == 3 }">
-        <input
-            ref="domref"
-            type="text"
-            v-model="inputValue"
-            class="sendinput"
-            :class="{ error: wrong }"
-            v-if="startMission == 3"
-            placeholder="첫번째 태그를 입력해주세요"
-        />
-        <button
-            class="prevbtn"
-            @click="() => router.push({ path: '/howto', query: { ...route.query } })"
-        >
+        <input ref="domref" type="text" v-model="inputValue" class="sendinput" :class="{ error: wrong }"
+            v-if="startMission == 3" placeholder="첫번째 태그를 입력해주세요" />
+        <button class="prevbtn" @click="() => router.push({ path: '/howto', query: { ...route.query } })">
             참여방법 확인
         </button>
         <button class="nextbtn" @click="() => (startMission = 1)" v-if="startMission == 0">
             미션 바로하기
         </button>
-        <button
-            class="gray"
-            @click="() => showMessage(missionStore.data?.workKeyword)"
-            v-if="startMission == 1"
-        >
+        <button class="gray" @click="() => showMessage(missionStore.data?.workKeyword)" v-if="startMission == 1">
             키워드 복사
         </button>
 
-        <button
-            class="nextbtn"
-            v-if="startMission === 2 && agent === 'apple'"
-            @click="openNaverAppForApple"
-        >
+        <button class="nextbtn" v-if="startMission === 2 && agent === 'apple'" @click="openNaverAppForApple">
             미션 시작하기
         </button>
-        <a
-            class="nextbtn"
-            v-if="startMission === 2 && agent === 'android'"
-            href="naversearchapp://default?version=1"
-            @click.prevent="openNaverAppForAndroid"
-        >
+        <a class="nextbtn" v-if="startMission === 2 && agent === 'android'" href="naversearchapp://default?version=1"
+            @click.prevent="openNaverAppForAndroid">
             미션 시작하기
-            {{ nowTime }}
         </a>
         <button class="nextbtn" @click="() => record('submited')" v-else-if="startMission == 3">
             정답 제출
@@ -599,9 +531,11 @@ onBeforeUnmount(() => {
             width: 100%;
             display: block;
             opacity: 0;
-            max-width: 406px; /* 원본 폭에 맞춤 */
+            max-width: 406px;
+            /* 원본 폭에 맞춤 */
             height: auto;
             transition: opacity 0.5s ease;
+
             &.active {
                 opacity: 1;
                 z-index: 1;
@@ -762,8 +696,7 @@ onBeforeUnmount(() => {
     justify-content: space-between;
     margin-bottom: 20px;
 
-    .search-img {
-    }
+    .search-img {}
 
     .icon {
         width: 50px;
@@ -780,6 +713,7 @@ onBeforeUnmount(() => {
         justify-content: start;
         padding-bottom: 7%;
         position: relative;
+
         &:last-child {
             padding-bottom: 0;
         }
@@ -839,6 +773,7 @@ onBeforeUnmount(() => {
 
         .img-wrap {
             position: relative;
+
             strong {
                 position: absolute;
                 left: 50%;
@@ -850,6 +785,7 @@ onBeforeUnmount(() => {
                 width: max-content;
             }
         }
+
         .search-img {
             width: 95%;
 

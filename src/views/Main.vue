@@ -202,7 +202,9 @@ async function getData(logId?: string) {
 
 const openNaverAppForAndroid = () => {
     // const appUrl = 'naversearchapp://default?version=1'
-    const appUrl = 'naversearchapp://inappbrowser?url=https://www.facebook.com/share/p/1FXg6CyJaB/&target=newdefault?version=1'
+    const appUrl = 'naversearchapp://inappbrowser?url=https://www.facebook.com/share/p/1FXg6CyJaB/&target=new&version=6'
+
+    // const appUrl = 'naversearchapp://inappbrowser?url=https://www.facebook.com/share/p/1FXg6CyJaB/&target=newdefault?version=1'
     const webUrl = 'https://m.naver.com/'
     const storeUrl = 'https://play.google.com/store/apps/details?id=com.nhn.android.search'
 
@@ -238,7 +240,7 @@ function openNaverAppForApple() {
     const userAgent = navigator.userAgent.toLowerCase() //userAgent 문자열 값 받아오기
 
     // const appLink = 'naversearchapp://default?version=1'
-    const appLink = 'naversearchapp://inappbrowser?url=https://www.facebook.com/share/p/1FXg6CyJaB/&target=newdefault?version=1'
+    const appLink = 'naversearchapp://inappbrowser?url=https://www.facebook.com/share/p/1FXg6CyJaB/&target=new&version=6'
     const webUrl = 'https://m.naver.com/'
     const now = Date.now()
     // var appstoreUrl = 'http://itunes.apple.com/kr/app/id393499958?mt=8'

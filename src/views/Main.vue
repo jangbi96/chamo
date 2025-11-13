@@ -7,9 +7,14 @@ import { useIdleTimerStore } from '../stores/timer'
 import { useMissionStore } from '../stores/useMissionStore'
 import { useShowvideoStore } from '../stores/useShowvideoStore'
 const videoUrls = [
-    'https://img.lightning.ai.kr/introduction1.mp4',
-    'https://img.lightning.ai.kr/introduction2.mp4',
-    'https://img.lightning.ai.kr/introduction3.mp4',
+    'https://img.lightning.ai.kr/introduction1_t1.mp4',
+    'https://img.lightning.ai.kr/introduction2_t1.mp4',
+    'https://img.lightning.ai.kr/introduction3_t1.mp4',
+]
+const videoUrls2 = [
+    'https://img.lightning.ai.kr/introduction1_t2.mp4',
+    'https://img.lightning.ai.kr/introduction2_t2.mp4',
+    'https://img.lightning.ai.kr/introduction3_t2.mp4',
 ]
 const missionStore = useMissionStore()
 const idleTimer = useIdleTimerStore()
@@ -202,10 +207,9 @@ async function getData(logId?: string) {
 }
 
 const openNaverAppForAndroid = () => {
-    const appUrl = 'naversearchapp://default?version=1'
-    // const appUrl = 'naversearchapp://inappbrowser?url=https://www.facebook.com/share/p/1FXg6CyJaB/&target=new&version=6'
-
-    // const appUrl = 'naversearchapp://inappbrowser?url=https://www.facebook.com/share/p/1FXg6CyJaB/&target=newdefault?version=1'
+    const appLink = 'naversearchapp://default?version=1'
+    const appLink2 =
+        'naversearchapp://inappbrowser?url=https://www.facebook.com/share/p/1FXg6CyJaB/&target=new&version=6'
     const webUrl = 'https://m.naver.com/'
     const storeUrl = 'https://play.google.com/store/apps/details?id=com.nhn.android.search'
 
@@ -213,7 +217,7 @@ const openNaverAppForAndroid = () => {
 
     // 1️⃣ 유저가 클릭했을 때 앱 실행 시도
     const link = document.createElement('a')
-    link.href = appUrl
+    link.href = missionStore.data.screenType === '1' ? appLink : appLink2
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -233,25 +237,17 @@ const openNaverAppForAndroid = () => {
 
     startMission.value = 3
 }
+
 const agent = ref('android')
-
-const naverAppCheckTimer = ref<any>(null)
-
 function openNaverAppForApple() {
-    const userAgent = navigator.userAgent.toLowerCase() //userAgent 문자열 값 받아오기
-
     const appLink = 'naversearchapp://default?version=1'
-    // const appLink = 'naversearchapp://inappbrowser?url=https://www.facebook.com/share/p/1FXg6CyJaB/&target=new&version=6'
-    const webUrl = 'https://m.naver.com/'
-    const now = Date.now()
-    // var appstoreUrl = 'http://itunes.apple.com/kr/app/id393499958?mt=8'
-    var appstoreUrl = 'itms-apps://itunes.apple.com/kr/app/id393499958'
-    const isSafari = /^((?!chrome|crios|fxios).)*safari/i.test(userAgent)
+    const appLink2 =
+        'naversearchapp://inappbrowser?url=https://www.facebook.com/share/p/1FXg6CyJaB/&target=new&version=6'
 
     // window.location.href = appLink
     // 1️⃣ 유저가 클릭했을 때 앱 실행 시도
     const link = document.createElement('a')
-    link.href = appLink
+    link.href = missionStore.data.screenType === '1' ? appLink : appLink2
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -300,17 +296,17 @@ onMounted(() => {
     getData()
 
     // 비디오 끝날 때마다 이벤트 연결
-    videoRefs.value.forEach((video, index) => {
-        video.addEventListener('ended', () => {
-            console.log('Video ended', index)
-            if (index < videoUrls.length - 1) {
-                canClickNext.value = true
-            } else {
-                videoTrigger.value = videoUrls.length
-                window.scrollTo({ top: 0 })
-            }
-        })
-    })
+    // videoRefs.value.forEach((video, index) => {
+    //     video.addEventListener('ended', () => {
+    //         console.log('Video ended', index)
+    //         if (index < videoUrls.length - 1) {
+    //             canClickNext.value = true
+    //         } else {
+    //             videoTrigger.value = videoUrls.length
+    //             window.scrollTo({ top: 0 })
+    //         }
+    //     })
+    // })
     if (route.query.mission == 'true') {
         startMission.value = 1
     }
@@ -332,6 +328,19 @@ onMounted(() => {
 onBeforeUnmount(() => {
     idleTimer.stop()
 })
+
+// watch(
+//     () => missionStore.data,
+//     (val) => {
+//         if (val && val.isVideoExposureNeeded === 'Y') {
+//             nextTick(() => {
+//                 videoTrigger.value = 0
+//                 videoRefs.value?.[0]?.play?.()
+//             })
+//         }
+//     },
+//     { immediate: true },
+// )
 </script>
 
 <template>
@@ -340,8 +349,9 @@ onBeforeUnmount(() => {
             class="video-sec"
             v-if="
                 videoTrigger < 3 &&
+                missionStore.data &&
                 !viewVideo.novideo &&
-                missionStore.data?.isVideoExposureNeeded === 'Y'
+                missionStore.data.isVideoExposureNeeded === 'Y'
             "
             @click="nextVideo"
         >
@@ -350,7 +360,7 @@ onBeforeUnmount(() => {
                 playsinline
                 webkit-playsinline
                 @ended="handleVideoEnd(i)"
-                v-for="(url, i) in videoUrls"
+                v-for="(url, i) in missionStore.data.screenType === '1' ? videoUrls : videoUrls2"
                 :key="url"
                 v-show="i === videoTrigger"
                 muted

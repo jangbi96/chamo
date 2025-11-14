@@ -275,8 +275,11 @@ const onSlideChange = (a: any) => {
             top: 43.8%;
             left: 6.1%;
             width: 90%;
-
+            justify-content: start;
             img {
+                height: max-content;
+                margin: unset;
+                margin-left: 5px;
                 width: 28%;
                 border-radius: 5px;
             }
@@ -286,7 +289,7 @@ const onSlideChange = (a: any) => {
             dt {
                 color: #40474d;
                 font-weight: 600;
-                font-size: 16px;
+                font-size: 14px;
                 line-height: 1.1;
                 margin-bottom: 3px;
                 word-break: keep-all;

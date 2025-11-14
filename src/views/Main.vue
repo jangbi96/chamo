@@ -155,36 +155,6 @@ async function record(state: 'submited' | 'end') {
     }
 }
 
-// async function getData(logId?: string) {
-//     try {
-//         const params = {
-//             userId: route.query.user_id,
-//             bzTrackingId: route.query.bz_tracking_id,
-//             ifa: route.query.ifa,
-//             ...(logId ? { logId } : {}),
-//         }
-
-//         const res: any = await axios.get(
-//             `http://admin.lightning.ai.kr/api/mission/info?${toQueryString(params)}`,
-//         )
-
-//         data.value = res.data
-//         const text = res.data.title
-
-//         const rr = text.replace(/<\/?b>/gi, '')
-
-//         boldText.value = res.data.workKeyword
-//         restText.value = rr
-//     } catch (error) {
-//         // router.push('/fail')
-//         console.log(error)
-//     }
-// }
-const nowTime = computed(() => {
-    const now = new Date()
-    return `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`
-})
-
 async function getData(logId?: string) {
     try {
         const params = {
@@ -216,40 +186,45 @@ const openNaverAppForAndroid = () => {
     // const appLink2 =
     //     'intent://www.facebook.com/share/p/1FXg6CyJaB/?foo=bar&baz=1#Intent;scheme=https;package=com.android.chrome;end;'
 
-    const webUrl = 'https://m.naver.com/'
-    // const facebookUrl = 'https://www.facebook.com/share/p/1FXg6CyJaB/'
-    const targetUrl = 'https://lightning.ai.kr/test.html'
+    const keyword = missionStore.data?.workKeyword
+    const type1FallbackUrl = 'https://m.naver.com/'
+    const type2FallbackUrl = 'https://lightning.ai.kr/test.html'
+    const type3FallbackUrl = `https://m.search.naver.com/search.naver?sm=mob_hty.top&where=m&query=${keyword}`
+    const type4FallbackUrl = `https://m.search.naver.com/search.naver?sm=mtb_hty.top&where=m&query=${keyword}`
+
     const storeUrl = 'https://play.google.com/store/apps/details?id=com.nhn.android.search'
-    const encodedUrl = encodeURIComponent(webUrl) // webUrl = 'https://m.naver.com/'
-    const encodedFallbackUrl = encodeURIComponent(targetUrl)
-    // const encodedFallbackUrlFacebook = encodeURIComponent(facebookUrl)
+    const encodedUrl1 = encodeURIComponent(type1FallbackUrl)
+    const encodedUrl2 = encodeURIComponent(type2FallbackUrl)
+    const encodedUrl3 = encodeURIComponent(type3FallbackUrl)
+    const encodedUrl4 = encodeURIComponent(type4FallbackUrl)
 
-    const appLink = `intent://default?version=1#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl};end;`
+    const appLink = `intent://default?version=1#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl1};end;`
 
-    // const appLink2 = 'naversearchapp://inappbrowser?url=https://lightning.ai.kr/test.html&version=6'
     // 2. 네이버 앱 내부 브라우저로 특정 URL 열기 Intent
-    const appLink2 = `intent://inappbrowser?url=https://lightning.ai.kr/test.html&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedFallbackUrl};end;`
-    // const appLink2 = `intent://inappbrowser?url=https://m.facebook.com/share/p/1FXg6CyJaB?noapp=1&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=https://m.facebook.com/share/p/1FXg6CyJaB?noapp=1;end;`
+    const appLink2 = `intent://inappbrowser?url=${encodedUrl2}&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl2};end;`
+    const appLink3 = `intent://inappbrowser?url=${encodedUrl3}&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl3};end;`
+    const appLink4 = `intent://inappbrowser?url=${encodedUrl4}&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl4};end;`
+
     // const appLink2 =
     //     'intent://m.facebook.com/share/p/1FXg6CyJaB/#Intent;scheme=https;package=com.android.chrome;end;'
 
-    // 모바일 웹 안전 URL
-    const fbUrl = 'https://m.facebook.com/share/p/1FXg6CyJaB/?noapp=1'
     // const appLink2 = `intent://inappbrowser?url=${encodedUrl}&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl};end;`
 
-    // intent 형태 URL (네이버 앱에서 인앱브라우저 열림, 페북 앱 절대 실행 안 됨)
-    // const appLink2 = `intent://inappbrowser?url=${encodedUrl}&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl};end;`
-
+    const appLinkOb = {
+        '1': appLink,
+        '2': appLink2,
+        '3': appLink3,
+        '4': appLink4,
+    }
     // 1️⃣ 유저가 클릭했을 때 앱 실행 시도
     const link = document.createElement('a')
-    link.href = missionStore.data.screenType === '1' ? appLink : appLink2
+    link.href = (appLinkOb as any)[missionStore.data.screenType]
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
 
     const now = Date.now()
-    let appLaunched = false
-    let timerId: any = null // setTimeout ID 저장용
+
     // 2️⃣ 앱이 안 열리면 fallback (앱 미설치)
     setTimeout(() => {
         if (Date.now() - now < 2500) {
@@ -269,15 +244,25 @@ const openNaverAppForAndroid = () => {
 const agent = ref('android')
 
 function openNaverAppForApple() {
+    const keyword = missionStore.data?.workKeyword
+
     const appLink = 'naversearchapp://default?version=1'
     const appLink2 =
         'naversearchapp://inappbrowser?url=https://lightning.ai.kr/test.html&target=new&version=6'
+    const appLink3 = `naversearchapp://inappbrowser?url=https://m.search.naver.com/search.naver?sm=mob_hty.top&where=m&query=${keyword}&target=new&version=6`
+    const appLink4 = `naversearchapp://inappbrowser?url=https://m.search.naver.com/search.naver?sm=mtb_hty.top&where=m&query=${keyword}&target=new&version=6`
     // const appLink2 = 'https://m.facebook.com/share/p/1FXg6CyJaB/'
 
+    const appLinkOb = {
+        '1': appLink,
+        '2': appLink2,
+        '3': appLink3,
+        '4': appLink4,
+    }
     // window.location.href = appLink
     // 1️⃣ 유저가 클릭했을 때 앱 실행 시도
     const link = document.createElement('a')
-    link.href = missionStore.data.screenType === '1' ? appLink : appLink2
+    link.href = (appLinkOb as any)[missionStore.data.screenType]
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -390,7 +375,7 @@ onBeforeUnmount(() => {
                 playsinline
                 webkit-playsinline
                 @ended="handleVideoEnd(i)"
-                v-for="(url, i) in missionStore.data.screenType === '1' ? videoUrls : videoUrls2"
+                v-for="(url, i) in missionStore.data.screenType === '2' ? videoUrls2 : videoUrls"
                 :key="url"
                 v-show="i === videoTrigger"
                 muted

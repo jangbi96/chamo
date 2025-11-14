@@ -210,8 +210,6 @@ async function getData(logId?: string) {
 
 const openNaverAppForAndroid = () => {
     // const appLink = 'naversearchapp://default?version=1'
-    // // const appLink2 =
-    // //     'naversearchapp://inappbrowser?url=https://www.facebook.com/share/p/1FXg6CyJaB/&version=6'
 
     // // 예: ?foo=bar&baz=1
 
@@ -219,17 +217,28 @@ const openNaverAppForAndroid = () => {
     //     'intent://www.facebook.com/share/p/1FXg6CyJaB/?foo=bar&baz=1#Intent;scheme=https;package=com.android.chrome;end;'
 
     const webUrl = 'https://m.naver.com/'
-    const facebookUrl = 'https://www.facebook.com/share/p/1FXg6CyJaB/'
+    // const facebookUrl = 'https://www.facebook.com/share/p/1FXg6CyJaB/'
+    const targetUrl = 'https://lightning.ai.kr/test.html'
     const storeUrl = 'https://play.google.com/store/apps/details?id=com.nhn.android.search'
-    const encodedFallbackUrl = encodeURIComponent(webUrl) // webUrl = 'https://m.naver.com/'
-    const encodedFallbackUrlFacebook = encodeURIComponent(facebookUrl)
+    const encodedUrl = encodeURIComponent(webUrl) // webUrl = 'https://m.naver.com/'
+    const encodedFallbackUrl = encodeURIComponent(targetUrl)
+    // const encodedFallbackUrlFacebook = encodeURIComponent(facebookUrl)
 
-    const appLink = `intent://default?version=1#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedFallbackUrl};end;`
+    const appLink = `intent://default?version=1#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl};end;`
 
+    // const appLink2 = 'naversearchapp://inappbrowser?url=https://lightning.ai.kr/test.html&version=6'
     // 2. 네이버 앱 내부 브라우저로 특정 URL 열기 Intent
-    // const appLink2 = `intent://inappbrowser?url=https://www.facebook.com/share/p/1FXg6CyJaB/&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedFallbackUrlFacebook};end;`
-    const appLink2 =
-        'intent://m.facebook.com/share/p/1FXg6CyJaB/#Intent;scheme=https;package=com.android.chrome;end;'
+    const appLink2 = `intent://inappbrowser?url=https://lightning.ai.kr/test.html&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedFallbackUrl};end;`
+    // const appLink2 = `intent://inappbrowser?url=https://m.facebook.com/share/p/1FXg6CyJaB?noapp=1&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=https://m.facebook.com/share/p/1FXg6CyJaB?noapp=1;end;`
+    // const appLink2 =
+    //     'intent://m.facebook.com/share/p/1FXg6CyJaB/#Intent;scheme=https;package=com.android.chrome;end;'
+
+    // 모바일 웹 안전 URL
+    const fbUrl = 'https://m.facebook.com/share/p/1FXg6CyJaB/?noapp=1'
+    // const appLink2 = `intent://inappbrowser?url=${encodedUrl}&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl};end;`
+
+    // intent 형태 URL (네이버 앱에서 인앱브라우저 열림, 페북 앱 절대 실행 안 됨)
+    // const appLink2 = `intent://inappbrowser?url=${encodedUrl}&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl};end;`
 
     // 1️⃣ 유저가 클릭했을 때 앱 실행 시도
     const link = document.createElement('a')
@@ -261,9 +270,9 @@ const agent = ref('android')
 
 function openNaverAppForApple() {
     const appLink = 'naversearchapp://default?version=1'
-    // const appLink2 =
-    //     'naversearchapp://inappbrowser?url=https://www.facebook.com/share/p/1FXg6CyJaB/&target=new&version=6'
-    const appLink2 = 'https://m.facebook.com/share/p/1FXg6CyJaB/'
+    const appLink2 =
+        'naversearchapp://inappbrowser?url=https://lightning.ai.kr/test.html&target=new&version=6'
+    // const appLink2 = 'https://m.facebook.com/share/p/1FXg6CyJaB/'
 
     // window.location.href = appLink
     // 1️⃣ 유저가 클릭했을 때 앱 실행 시도

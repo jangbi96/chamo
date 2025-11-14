@@ -277,6 +277,7 @@ const onSlideChange = (a: any) => {
             width: 90%;
             justify-content: start;
             img {
+                max-height: 80px;
                 height: max-content;
                 margin: unset;
                 margin-left: 5px;

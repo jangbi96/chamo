@@ -187,6 +187,7 @@ const openNaverAppForAndroid = () => {
     //     'intent://www.facebook.com/share/p/1FXg6CyJaB/?foo=bar&baz=1#Intent;scheme=https;package=com.android.chrome;end;'
 
     const keyword = missionStore.data?.workKeyword
+    console.log(keyword)
     const type1FallbackUrl = 'https://m.naver.com/'
     const type2FallbackUrl = 'https://lightning.ai.kr/test.html'
     const type3FallbackUrl = `https://m.search.naver.com/search.naver?sm=mob_hty.top&where=m&query=${keyword}`
@@ -244,17 +245,23 @@ const openNaverAppForAndroid = () => {
 const agent = ref('android')
 
 function openNaverAppForApple() {
-    const keyword = missionStore.data?.workKeyword
-
-    const appLink = 'naversearchapp://default?version=1'
+    const keyword = encodeURIComponent(missionStore.data?.workKeyword)
+    const appLink1 = 'naversearchapp://default?version=1'
     const appLink2 =
         'naversearchapp://inappbrowser?url=https://lightning.ai.kr/test.html&target=new&version=6'
-    const appLink3 = `naversearchapp://inappbrowser?url=https://m.search.naver.com/search.naver?sm=mob_hty.top&where=m&query=${keyword}&target=new&version=6`
-    const appLink4 = `naversearchapp://inappbrowser?url=https://m.search.naver.com/search.naver?sm=mtb_hty.top&where=m&query=${keyword}&target=new&version=6`
+
+    const encodeUrl3 = encodeURIComponent(
+        `https://m.search.naver.com/search.naver?sm=mob_hty.top&where=m&query=${keyword}`,
+    )
+    const encodeUrl4 = encodeURIComponent(
+        `https://m.search.naver.com/search.naver?sm=mtb_hty.top&where=m&query=${keyword}`,
+    )
+    const appLink3 = `naversearchapp://inappbrowser?url=${encodeUrl3}&target=new&version=6`
+    const appLink4 = `naversearchapp://inappbrowser?url=${encodeUrl4}&target=new&version=6`
     // const appLink2 = 'https://m.facebook.com/share/p/1FXg6CyJaB/'
 
     const appLinkOb = {
-        '1': appLink,
+        '1': appLink1,
         '2': appLink2,
         '3': appLink3,
         '4': appLink4,

@@ -202,9 +202,9 @@ const openNaverAppForAndroid = () => {
     const appLink = `intent://default?version=1#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl1};end;`
 
     // 2. 네이버 앱 내부 브라우저로 특정 URL 열기 Intent
-    const appLink2 = `intent://inappbrowser?url=${encodedUrl2}&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl2};end;`
-    const appLink3 = `intent://inappbrowser?url=${encodedUrl3}&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl3};end;`
-    const appLink4 = `intent://inappbrowser?url=${encodedUrl4}&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl4};end;`
+    const appLink2 = `intent://inappbrowser?url=${encodedUrl2}&target=new&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl2};end;`
+    const appLink3 = `intent://inappbrowser?url=${encodedUrl3}&target=new&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl3};end;`
+    const appLink4 = `intent://inappbrowser?url=${encodedUrl4}&target=new&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl4};end;`
 
     // const appLink2 =
     //     'intent://m.facebook.com/share/p/1FXg6CyJaB/#Intent;scheme=https;package=com.android.chrome;end;'
@@ -246,9 +246,9 @@ const agent = ref('android')
 
 function openNaverAppForApple() {
     const keyword = encodeURIComponent(missionStore.data?.workKeyword)
-    const appLink1 = 'naversearchapp://default?version=1'
+    const appLink1 = 'naversearchapp://default?version=1&target=new&cleardata=1'
     const appLink2 =
-        'naversearchapp://inappbrowser?url=https://lightning.ai.kr/test.html&target=new&version=6'
+        'naversearchapp://inappbrowser?url=https://lightning.ai.kr/test.html&target=new&version=6&cleardata=1'
 
     const encodeUrl3 = encodeURIComponent(
         `https://m.search.naver.com/search.naver?sm=mob_hty.top&where=m&query=${keyword}`,
@@ -256,8 +256,8 @@ function openNaverAppForApple() {
     const encodeUrl4 = encodeURIComponent(
         `https://m.search.naver.com/search.naver?sm=mtb_hty.top&where=m&query=${keyword}`,
     )
-    const appLink3 = `naversearchapp://inappbrowser?url=${encodeUrl3}&target=new&version=6`
-    const appLink4 = `naversearchapp://inappbrowser?url=${encodeUrl4}&target=new&version=6`
+    const appLink3 = `naversearchapp://inappbrowser?url=${encodeUrl3}&target=ne.w&version=6&cleardata=1`
+    const appLink4 = `naversearchapp://inappbrowser?url=${encodeUrl4}&target=new&version=6&cleardata=1`
     // const appLink2 = 'https://m.facebook.com/share/p/1FXg6CyJaB/'
 
     const appLinkOb = {
@@ -266,6 +266,8 @@ function openNaverAppForApple() {
         '3': appLink3,
         '4': appLink4,
     }
+
+    window.alert((appLinkOb as any)[missionStore.data.screenType])
     // window.location.href = appLink
     // 1️⃣ 유저가 클릭했을 때 앱 실행 시도
     const link = document.createElement('a')

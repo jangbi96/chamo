@@ -252,8 +252,8 @@ function openNaverAppForApple() {
     const encodeUrl4 = encodeURIComponent(
         `https://m.search.naver.com/search.naver?sm=mtb_hty.top&where=m&query=${keyword}`,
     )
-    const appLink3 = `naversearchapp://inappbrowser?url=${encodeUrl3}&target=new&version=6`
-    const appLink4 = `naversearchapp://inappbrowser?url=${encodeUrl4}&target=new&version=6`
+    const appLink3 = `naversearchapp://inappbrowser?url=${encodeUrl3}&target=ne.w&version=6&cleardata=1`
+    const appLink4 = `naversearchapp://inappbrowser?url=${encodeUrl4}&target=new&version=6&cleardata=1`
     // const appLink2 = 'https://m.facebook.com/share/p/1FXg6CyJaB/'
 
     const appLinkOb = {
@@ -262,6 +262,8 @@ function openNaverAppForApple() {
         '3': appLink3,
         '4': appLink4,
     }
+
+    window.alert((appLinkOb as any)[missionStore.data.screenType])
     // window.location.href = appLink
     // 1️⃣ 유저가 클릭했을 때 앱 실행 시도
     const link = document.createElement('a')

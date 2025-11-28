@@ -189,7 +189,7 @@ const openNaverAppForAndroid = () => {
     const keyword = missionStore.data?.workKeyword
     console.log(keyword)
     const type1FallbackUrl = 'https://m.naver.com/'
-    const type2FallbackUrl = 'https://lightning.ai.kr/test.html'
+    const type2FallbackUrl = `https://lightning.ai.kr/test.html`
     const type3FallbackUrl = `https://m.search.naver.com/search.naver?sm=mob_hty.top&where=m&query=${keyword}`
     const type4FallbackUrl = `https://m.search.naver.com/search.naver?sm=mtb_hty.top&where=m&query=${keyword}`
 
@@ -199,17 +199,12 @@ const openNaverAppForAndroid = () => {
     const encodedUrl3 = encodeURIComponent(type3FallbackUrl)
     const encodedUrl4 = encodeURIComponent(type4FallbackUrl)
 
-    const appLink = `intent://default?version=1#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl1};end;`
+    const appLink = `intent://inappbrowser?url=http%3A%2F%2Fm.naver.com&target=new&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl1};end;`
 
     // 2. 네이버 앱 내부 브라우저로 특정 URL 열기 Intent
-    const appLink2 = `intent://inappbrowser?url=${encodedUrl2}&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl2};end;`
+    const appLink2 = `intent://inappbrowser?url=${encodedUrl2}&target=new&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl2};end;`
     const appLink3 = `intent://inappbrowser?url=${encodedUrl3}&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl3};end;`
     const appLink4 = `intent://inappbrowser?url=${encodedUrl4}&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl4};end;`
-
-    // const appLink2 =
-    //     'intent://m.facebook.com/share/p/1FXg6CyJaB/#Intent;scheme=https;package=com.android.chrome;end;'
-
-    // const appLink2 = `intent://inappbrowser?url=${encodedUrl}&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl};end;`
 
     const appLinkOb = {
         '1': appLink,
@@ -246,9 +241,10 @@ const agent = ref('android')
 
 function openNaverAppForApple() {
     const keyword = encodeURIComponent(missionStore.data?.workKeyword)
-    const appLink1 = 'naversearchapp://default?version=1'
-    const appLink2 =
-        'naversearchapp://inappbrowser?url=https://lightning.ai.kr/test.html&target=new&version=6'
+    // const appLink1 = 'naversearchapp://default?version=1'
+    const appLink1 =
+        'naversearchapp://inappbrowser?url=http%3A%2F%2Fm.naver.com&target=new&version=6'
+    const appLink2 = `naversearchapp://inappbrowser?url=https%3A%2F%2Flightning.ai.kr%2Ftest.html&target=new&version=6`
 
     const encodeUrl3 = encodeURIComponent(
         `https://m.search.naver.com/search.naver?sm=mob_hty.top&where=m&query=${keyword}`,

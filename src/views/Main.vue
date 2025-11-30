@@ -161,7 +161,7 @@ async function getData(logId?: string) {
             userId: route.query.user_id,
             bzTrackingId: route.query.bz_tracking_id,
             ifa: route.query.ifa,
-            ...(logId ? { logId } : {}),
+            ...(logId ? { logId, slotId: missionStore.data?.slotId } : {}),
         }
 
         const res: any = await axios.get(

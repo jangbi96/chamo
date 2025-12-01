@@ -30,7 +30,9 @@ const isCopy = ref(false)
 const startMission = ref(0)
 
 const inputValue = ref('')
+const submittedAnswer = ref<string[]>([])
 const wrong = ref(false)
+const inputCount = ref(0)
 const test = ref(false)
 const domref = ref<HTMLElement | null>(null)
 
@@ -100,8 +102,14 @@ function nextVideo() {
 }
 const triggerError = () => {
     wrong.value = true
-    // 애니메이션 다시 실행되게 잠시 후 클래스 제거
-    // submittedAnswer.value = submittedAnswer.value + text;
+    inputCount.value += 1
+    // submittedAnswer 가 10개를 초과한경우, 0번째를 제거. 항상 최신 10개까지만 저장
+    if (submittedAnswer.value.length > 10) {
+        submittedAnswer.value.shift()
+    }
+
+    const input = inputValue.value.replace(/\s+/g, '')
+    submittedAnswer.value.push(input)
     inputValue.value = ''
     setTimeout(() => {
         wrong.value = false
@@ -119,18 +127,29 @@ function addComma(num: string | number) {
  * 연결 끝의 기준-> 10분, 창 종료
  */
 async function record(state: 'submited' | 'end') {
-    if (inputValue.value.length === 1 || !inputValue.value) {
+    const input = inputValue.value.replace(/\s+/g, '')
+    const correctCondition = missionStore.data?.hashtag?.includes(input)
+
+    if (inputValue.value.length === 1 || !inputValue.value || !correctCondition) {
         triggerError()
         return
     }
 
+    // return
     try {
         const params = {
             logId: missionStore.data?.logId,
             copyCount: copyCnt.value,
-            submittedAnswer: inputValue.value,
+            // submittedAnswer: inputValue.value,
+            bzTrackingId: route.query.bz_tracking_id,
+            inputCount: inputCount.value, // 오답시도횟수
+            submittedAnswer: submittedAnswer.value.join(','), // 오답 입력값 콤마로 join
         }
 
+        // console.log(params)
+        // return
+
+        // return
         // 정답일경우
         if (state === 'submited') {
             const res1 = await axios.post(
@@ -171,7 +190,7 @@ async function getData(logId?: string) {
         // store에 데이터 저장
         missionStore.setData(res.data)
     } catch (error) {
-        router.push('/fail')
+        // router.push('/fail')
 
         // alert(JSON.stringify(error))
         console.log(error)
@@ -315,18 +334,6 @@ onMounted(() => {
 
     getData()
 
-    // 비디오 끝날 때마다 이벤트 연결
-    // videoRefs.value.forEach((video, index) => {
-    //     video.addEventListener('ended', () => {
-    //         console.log('Video ended', index)
-    //         if (index < videoUrls.length - 1) {
-    //             canClickNext.value = true
-    //         } else {
-    //             videoTrigger.value = videoUrls.length
-    //             window.scrollTo({ top: 0 })
-    //         }
-    //     })
-    // })
     if (route.query.mission == 'true') {
         startMission.value = 1
     }

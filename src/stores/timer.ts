@@ -1,50 +1,67 @@
 // stores/idleTimer.ts
 import { defineStore } from 'pinia'
-const time = 10 * 60 * 1000;
-// const time = 10 * 1000;
+
+const DEFAULT_IDLE = 10 * 60 * 1000
+
 export const useIdleTimerStore = defineStore('idleTimer', {
-  state: () => ({
-    timerId: null as number | null,
-    executed: false
-  }),
-  actions: {
-    start(callback: () => void, idleTime = time) {
-      this.executed = false
+    state: () => ({
+        timerId: null as number | null,
+        executed: false,
+        handler: null as (() => void) | null,
+        registered: false, // 이벤트 중복 등록 방지
+    }),
 
-      const resetTimer = () => {
-        if (this.timerId) clearTimeout(this.timerId)
-        this.timerId = window.setTimeout(() => {
-          callback()
-          this.executed = true
-          this.stop()
-        }, idleTime)
-      }
+    actions: {
+        start(callback: () => void, idleTime = DEFAULT_IDLE) {
+            this.executed = false
 
-      // 이벤트 감지: 모바일 중심
-      const events = ['touchstart', 'touchmove', 'scroll']
-      const handler = () => {
-        if (!this.executed) resetTimer()
-      }
+            // 기존 타이머 제거
+            if (this.timerId) clearTimeout(this.timerId)
 
-      events.forEach(e => window.addEventListener(e, handler))
+            const resetTimer = () => {
+                if (this.timerId) clearTimeout(this.timerId)
+                this.timerId = window.setTimeout(() => {
+                    callback()
+                    this.executed = true
+                    this.stop()
+                }, idleTime)
+            }
 
-      // 처음 시작 시 타이머 세팅
-      resetTimer()
+            // 이벤트 핸들러 생성 (한 번만)
+            if (!this.handler) {
+                this.handler = () => {
+                    if (!this.executed) resetTimer()
+                }
+            }
 
-      // 타이머 종료 시 이벤트 제거
-      this.stopHandler = () => {
-        events.forEach(e => window.removeEventListener(e, handler))
-        if (this.timerId) clearTimeout(this.timerId)
-      }
+            const events = ['touchstart', 'touchmove', 'scroll']
+
+            // 이벤트를 중복 등록하지 않음
+            if (!this.registered) {
+                events.forEach((e) => window.addEventListener(e, this.handler!))
+                this.registered = true
+            }
+
+            // 최초 타이머 설정
+            resetTimer()
+        },
+
+        stop() {
+            const events = ['touchstart', 'touchmove', 'scroll']
+
+            if (this.registered && this.handler) {
+                events.forEach((e) => window.removeEventListener(e, this.handler!))
+            }
+            this.registered = false
+
+            if (this.timerId) clearTimeout(this.timerId)
+            this.timerId = null
+            this.executed = true
+        },
+
+        reset(callback: () => void, idleTime = DEFAULT_IDLE) {
+            this.stop()
+            this.start(callback, idleTime)
+        },
     },
-    stop() {
-      if (this.stopHandler) this.stopHandler()
-      this.timerId = null
-    },
-    reset(callback: () => void, idleTime = time) {
-      this.stop()
-      this.start(callback, idleTime)
-    },
-    stopHandler: null as (() => void) | null
-  }
 })

@@ -282,7 +282,7 @@ function openNaverAppForApple() {
         '4': appLink4,
     }
 
-    window.alert((appLinkOb as any)[missionStore.data.screenType])
+    // window.alert((appLinkOb as any)[missionStore.data.screenType])
     // window.location.href = appLink
     // 1️⃣ 유저가 클릭했을 때 앱 실행 시도
     const link = document.createElement('a')

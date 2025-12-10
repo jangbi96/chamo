@@ -144,8 +144,11 @@ async function record(state: 'submited' | 'end') {
     try {
         const params = {
             logId: missionStore.data?.logId,
+            logicType: missionStore.data?.logicType,
+            middleType: missionStore.data?.middleType,
+            userId: route.query.user_id,
+            ifa: route.query.ifa,
             copyCount: copyCnt.value,
-            // submittedAnswer: inputValue.value,
             bzTrackingId: route.query.bz_tracking_id,
             inputCount: inputCount.value, // 오답시도횟수
             submittedAnswer: submittedAnswer.value.join(','), // 오답 입력값 콤마로 join
@@ -169,7 +172,7 @@ async function record(state: 'submited' | 'end') {
         // 연결이 끊긴경우
         if (state === 'end') {
             const res1 = await axios.post(
-                `https://admin.lightning.ai.kr/api/mission/attemptRecord?${toQueryString(params)}`,
+                `https://admin.lightning.ai.kr/api/mission/attemptRecord--?${toQueryString(params)}`,
             )
         }
     } catch (error: any) {
@@ -225,7 +228,6 @@ const openNaverAppForAndroid = () => {
     document.body.removeChild(link)
 
     const now = Date.now()
-
     // 2️⃣ 앱이 안 열리면 fallback (앱 미설치)
     setTimeout(() => {
         if (Date.now() - now < 2500) {

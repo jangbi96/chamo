@@ -29,6 +29,21 @@ const isCopy = ref(false)
 
 const startMission = ref(0)
 
+const urlByScreenType = ref({
+    '1': 'https://www.google.com/search?q=%EB%84%A4%EC%9D%B4%EB%B2%84&sca_esv=73e86a78892c9231&source=hp&ei=SNU4ae-7NtWeseMPr-eE8A0&oq=%EB%84%A4%EC%9D%B4%EB%B2%84&gs_lp=EhFtb2JpbGUtZ3dzLXdpei1ocCIJ64Sk7J2067KEMgIQKTIREC4YgAQYsQMY0QMYgwEYxwEyCxAAGIAEGLEDGIMBMgsQABiABBixAxiDATILEAAYgAQYsQMYgwEyCxAAGIAEGLEDGIMBMgsQABiABBixAxiDATILEAAYgAQYsQMYgwEyCxAAGIAEGLEDGIMBSOcTUNcGWMQScAZ4AJABBpgBkQGgAbAKqgEEMS4xMLgBA8gBAPgBAZgCC6AC2wSoAgLCAgsQLhiABBjRAxjHAcICCxAuGIAEGLEDGIMBwgIIEAAYgAQYsQPCAgQQABgDwgIFEAAYgATCAgoQABiABBhDGIoFwgIQEC4YgAQY0QMYQxjHARiKBcICERApGIAEGLEDGNEDGIMBGMcBmAN78QWvsvn3yiS0nJIHAzcuNKAHqUCyBwMxLjS4B70EwgcFMC4zLjjIBzCACAA&sclient=mobile-gws-wiz-hp',
+    '2': 'https://news.naver.com/',
+    '3': 'https://m.cafe.naver.com/',
+    '4': 'https://m.mail.naver.com/',
+    '5': 'https://weather.naver.com/',
+    '6': 'https://m.search.naver.com/search.naver?query=%EC%B7%A8%EC%97%85%EC%A0%95%EB%B3%B4',
+    '7': 'https://m.search.naver.com/search.naver?query=%EC%98%A4%EB%8A%98+%EB%82%A0%EC%94%A8',
+    '8': 'https://m.search.naver.com/search.naver?query=%EC%86%90%ED%9D%A5%EB%AF%BC',
+    '9': 'https://m.search.naver.com/search.naver?query=%EC%9D%B4%EC%9E%AC%EB%AA%85+%EC%A7%80%EC%A7%80%EC%9C%A8',
+    '10': 'https://m.search.naver.com/search.naver?query=%ED%95%9C%ED%8C%8C+%EB%8C%80%EB%B9%84+%EB%B0%A9%EB%B2%95',
+    '11': 'https://m.search.naver.com/search.naver?sm=mtp_hty.top&where=m&query=%EB%AF%B8%EC%84%B8%EB%A8%BC%EC%A7%80+%EC%88%98%EC%B9%98',
+    '12': 'https://m.search.naver.com/search.naver?sm=mtp_hty.top&where=m&query=%ED%95%9C%ED%8C%8C+%EC%A3%BC%EC%9D%98%EB%B3%B4',
+})
+
 const inputValue = ref('')
 const submittedAnswer = ref<string[]>([])
 const wrong = ref(false)
@@ -90,16 +105,6 @@ async function showMessage(keyword: string) {
     }, 1000)
 }
 
-function nextVideo() {
-    // 세 번째 영상에서는 터치 금지
-    if (videoTrigger.value >= videoUrls.length - 1) return
-
-    // 끝나야 클릭 가능
-    if (canClickNext.value) {
-        videoTrigger.value += 1
-        canClickNext.value = false // 다음 영상은 다시 false로 초기화
-    }
-}
 const triggerError = () => {
     wrong.value = true
     inputCount.value += 1
@@ -190,7 +195,7 @@ async function getData(logId?: string) {
         // store에 데이터 저장
         missionStore.setData(res.data)
     } catch (error) {
-        // router.push('/fail')
+        router.push('/fail')
 
         // alert(JSON.stringify(error))
         console.log(error)
@@ -198,42 +203,23 @@ async function getData(logId?: string) {
 }
 
 const openNaverAppForAndroid = () => {
-    // const appLink = 'naversearchapp://default?version=1'
-
-    // // 예: ?foo=bar&baz=1
-
-    // const appLink2 =
-    //     'intent://www.facebook.com/share/p/1FXg6CyJaB/?foo=bar&baz=1#Intent;scheme=https;package=com.android.chrome;end;'
-
     const keyword = missionStore.data?.workKeyword
-    console.log(keyword)
-    const type1FallbackUrl = 'https://m.naver.com/'
-    const type2FallbackUrl = `https://lightning.ai.kr/test.html`
-    const type3FallbackUrl = `https://m.search.naver.com/search.naver?sm=mob_hty.top&where=m&query=${keyword}`
-    const type4FallbackUrl = `https://m.search.naver.com/search.naver?sm=mtb_hty.top&where=m&query=${keyword}`
+    // const type1FallbackUrl = 'https://m.naver.com/'
+    // const type2FallbackUrl = `https://lightning.ai.kr/test.html`
+    // const type3FallbackUrl = `https://m.search.naver.com/search.naver?sm=mob_hty.top&where=m&query=${keyword}`
+    // const type4FallbackUrl = `https://m.search.naver.com/search.naver?sm=mtb_hty.top&where=m&query=${keyword}`
 
+    // missionStore.data.extenalUrl
+    const targetLink = missionStore.data.extenalUrl
     const storeUrl = 'https://play.google.com/store/apps/details?id=com.nhn.android.search'
-    const encodedUrl1 = encodeURIComponent(type1FallbackUrl)
-    const encodedUrl2 = encodeURIComponent(type2FallbackUrl)
-    const encodedUrl3 = encodeURIComponent(type3FallbackUrl)
-    const encodedUrl4 = encodeURIComponent(type4FallbackUrl)
-
-    const appLink = `intent://inappbrowser?url=http%3A%2F%2Fm.naver.com&target=new&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl1};end;`
+    const encodedUrl = encodeURIComponent(targetLink)
 
     // 2. 네이버 앱 내부 브라우저로 특정 URL 열기 Intent
-    const appLink2 = `intent://inappbrowser?url=${encodedUrl2}&target=new&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl2};end;`
-    const appLink3 = `intent://inappbrowser?url=${encodedUrl3}&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl3};end;`
-    const appLink4 = `intent://inappbrowser?url=${encodedUrl4}&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl4};end;`
+    const appLink = `intent://inappbrowser?url=${encodedUrl}&target=new&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl};end;`
 
-    const appLinkOb = {
-        '1': appLink,
-        '2': appLink2,
-        '3': appLink3,
-        '4': appLink4,
-    }
     // 1️⃣ 유저가 클릭했을 때 앱 실행 시도
     const link = document.createElement('a')
-    link.href = (appLinkOb as any)[missionStore.data.screenType]
+    link.href = appLink
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -260,33 +246,33 @@ const agent = ref('android')
 
 function openNaverAppForApple() {
     const keyword = encodeURIComponent(missionStore.data?.workKeyword)
+
+    // missionStore.data.extenalUrl
+    // const targetLink = (urlByScreenType.value as any)[missionStore.data.screenType]
+    const targetLink = missionStore.data.extenalUrl
+
+    const encodedUrl = encodeURIComponent(targetLink)
+
     // const appLink1 = 'naversearchapp://default?version=1'
-    const appLink1 =
-        'naversearchapp://inappbrowser?url=http%3A%2F%2Fm.naver.com&target=new&version=6'
-    const appLink2 = `naversearchapp://inappbrowser?url=https%3A%2F%2Flightning.ai.kr%2Ftest.html&target=new&version=6`
+    const appLink = `naversearchapp://inappbrowser?url=${encodedUrl}&target=new&version=6`
+    // const appLink2 = `naversearchapp://inappbrowser?url=https%3A%2F%2Flightning.ai.kr%2Ftest.html&target=new&version=6`
 
-    const encodeUrl3 = encodeURIComponent(
-        `https://m.search.naver.com/search.naver?sm=mob_hty.top&where=m&query=${keyword}`,
-    )
-    const encodeUrl4 = encodeURIComponent(
-        `https://m.search.naver.com/search.naver?sm=mtb_hty.top&where=m&query=${keyword}`,
-    )
-    const appLink3 = `naversearchapp://inappbrowser?url=${encodeUrl3}&target=ne.w&version=6&cleardata=1`
-    const appLink4 = `naversearchapp://inappbrowser?url=${encodeUrl4}&target=new&version=6&cleardata=1`
+    // const encodeUrl3 = encodeURIComponent(
+    //     `https://m.search.naver.com/search.naver?sm=mob_hty.top&where=m&query=${keyword}`,
+    // )
+    // const encodeUrl4 = encodeURIComponent(
+    //     `https://m.search.naver.com/search.naver?sm=mtb_hty.top&where=m&query=${keyword}`,
+    // )
+    // const appLink3 = `naversearchapp://inappbrowser?url=${encodeUrl3}&target=new&version=6&cleardata=1`
+    // const appLink4 = `naversearchapp://inappbrowser?url=${encodeUrl4}&target=new&version=6&cleardata=1`
     // const appLink2 = 'https://m.facebook.com/share/p/1FXg6CyJaB/'
-
-    const appLinkOb = {
-        '1': appLink1,
-        '2': appLink2,
-        '3': appLink3,
-        '4': appLink4,
-    }
 
     // window.alert((appLinkOb as any)[missionStore.data.screenType])
     // window.location.href = appLink
     // 1️⃣ 유저가 클릭했을 때 앱 실행 시도
+
     const link = document.createElement('a')
-    link.href = (appLinkOb as any)[missionStore.data.screenType]
+    link.href = appLink
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -304,17 +290,97 @@ watch(
         }
     },
 )
+function nextVideo() {
+    const currentIdx = videoTrigger.value
+    const videoList = missionStore.data.videoList
+    const lastIdx = videoList.length - 1
+    const currentVideo = videoList[currentIdx]
 
-function handleVideoEnd(index: number) {
-    console.log('Video ended:', index)
-    if (index < videoUrls.length - 1) {
-        canClickNext.value = true
-    } else {
-        videoTrigger.value = videoUrls.length
+    const isLast = currentIdx === lastIdx
+    const isSkippable = currentVideo.isSkippable === 'Y'
+
+    const videoEl = videoRefs.value[currentIdx]
+    const isMiddleTouch =
+        videoEl && videoEl.duration > 0 && videoEl.currentTime < videoEl.duration - 0.2
+
+    // ============================
+    // 📌 1) 마지막 영상 처리 (별도 규칙)
+    // ============================
+    if (isLast) {
+        if (!isSkippable && isMiddleTouch) {
+            // 마지막 + N → 중간 터치 무시
+            return
+        }
+
+        // 마지막 + Y 중간 터치 → 종료
+        // 마지막 + N/Y 끝나고 터치 → 종료
+        videoTrigger.value = lastIdx + 1
         window.scrollTo({ top: 0 })
+        return
+    }
+
+    // ============================
+    // 📌 2) 마지막 영상 ‘외의’ 영상 규칙
+    // ============================
+
+    // 중간 터치라면:
+    if (isMiddleTouch) {
+        if (!isSkippable) {
+            // N → 무시
+            return
+        }
+
+        // Y → 즉시 다음
+        goNext()
+        return
+    }
+
+    // 영상이 끝난 뒤 터치라면:
+    // Y/N 모두 다음으로 이동
+    goNext()
+
+    function goNext() {
+        videoTrigger.value += 1
+        canClickNext.value = false
     }
 }
+// function handleVideoEnd(index: number) {
+//     const lastIdx = missionStore.data.videoList.length - 1
 
+//     // 마지막 영상이면 → 자동 종료 후 섹션 숨김
+//     if (index === lastIdx) {
+//         videoTrigger.value = lastIdx + 1
+//         window.scrollTo({ top: 0 })
+//         return
+//     }
+
+//     const currentVideo = missionStore.data.videoList[index]
+
+//     // 스킵 불가(N) 영상은 → 영상 끝날 때만 자동 다음
+//     if (currentVideo.isSkippable === 'N') {
+//         videoTrigger.value += 1
+//         canClickNext.value = false
+//         return
+//     }
+
+//     // 스킵 가능한(Y) 영상이면 → 터치해도, 또는 영상 끝나도 넘어갈 수 있도록 플래그만 true
+//     canClickNext.value = true
+// }
+
+function handleVideoEnd(index: number) {
+    const videoList = missionStore.data.videoList
+    const lastIdx = videoList.length - 1
+
+    // 마지막 영상이 끝났으면 (Y/N 상관없이) 자동 종료
+    if (index === lastIdx) {
+        videoTrigger.value = lastIdx + 1
+        window.scrollTo({ top: 0 })
+        return
+    }
+
+    // 마지막이 아니면: 끝났음을 표시만 하고(= 다음 터치 허용)
+    canClickNext.value = true
+}
 function maskName(str: string, maskChar = 'O') {
     if (typeof str !== 'string') return str
     const s = str.trim()
@@ -355,19 +421,6 @@ onMounted(() => {
 onBeforeUnmount(() => {
     idleTimer.stop()
 })
-
-// watch(
-//     () => missionStore.data,
-//     (val) => {
-//         if (val && val.isVideoExposureNeeded === 'Y') {
-//             nextTick(() => {
-//                 videoTrigger.value = 0
-//                 videoRefs.value?.[0]?.play?.()
-//             })
-//         }
-//     },
-//     { immediate: true },
-// )
 </script>
 
 <template>
@@ -375,7 +428,7 @@ onBeforeUnmount(() => {
         <div
             class="video-sec"
             v-if="
-                videoTrigger < 3 &&
+                videoTrigger < missionStore.data?.videoList?.length &&
                 missionStore.data &&
                 !viewVideo.novideo &&
                 missionStore.data.isVideoExposureNeeded === 'Y'
@@ -387,15 +440,15 @@ onBeforeUnmount(() => {
                 playsinline
                 webkit-playsinline
                 @ended="handleVideoEnd(i)"
-                v-for="(url, i) in missionStore.data.screenType === '2' ? videoUrls2 : videoUrls"
-                :key="url"
+                v-for="(url, i) in missionStore.data.videoList"
+                :key="url.filename"
                 v-show="i === videoTrigger"
                 muted
                 autoplay
                 ref="videoRefs"
                 :class="['video-item', { active: i === videoTrigger }]"
             >
-                <source :src="url" type="video/mp4" />
+                <source :src="missionStore.data.domainUrl + url.filename" type="video/mp4" />
             </video>
         </div>
         <strong class="poi"

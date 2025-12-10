@@ -260,7 +260,6 @@ const agent = ref('android')
 
 function openNaverAppForApple() {
     const keyword = encodeURIComponent(missionStore.data?.workKeyword)
-    // const appLink1 = 'naversearchapp://default?version=1'
     const appLink1 =
         'naversearchapp://inappbrowser?url=http%3A%2F%2Fm.naver.com&target=new&version=6'
     const appLink2 = `naversearchapp://inappbrowser?url=https%3A%2F%2Flightning.ai.kr%2Ftest.html&target=new&version=6`
@@ -271,7 +270,7 @@ function openNaverAppForApple() {
     const encodeUrl4 = encodeURIComponent(
         `https://m.search.naver.com/search.naver?sm=mtb_hty.top&where=m&query=${keyword}`,
     )
-    const appLink3 = `naversearchapp://inappbrowser?url=${encodeUrl3}&target=ne.w&version=6&cleardata=1`
+    const appLink3 = `naversearchapp://inappbrowser?url=${encodeUrl3}&target=new&version=6&cleardata=1`
     const appLink4 = `naversearchapp://inappbrowser?url=${encodeUrl4}&target=new&version=6&cleardata=1`
     // const appLink2 = 'https://m.facebook.com/share/p/1FXg6CyJaB/'
 

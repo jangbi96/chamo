@@ -18,7 +18,7 @@ const videoUrls2 = [
 ]
 const missionStore = useMissionStore()
 const idleTimer = useIdleTimerStore()
-const videoTrigger = ref(0)
+const videoTrigger = ref<number | null>(null)
 const router = useRouter()
 const route = useRoute()
 
@@ -57,6 +57,10 @@ const data = ref<any>(null)
 const videoRefs = ref<HTMLVideoElement[]>([])
 const canClickNext = ref(false) // 현재 영상이 끝났을 때만 true
 const viewVideo = useShowvideoStore()
+
+// 건너뛰기 버튼
+const showSkipButton = ref(false)
+const skipTimer = ref<number | null>(null)
 
 /* 키워드복사횟수, 정답입력횟수, 정답체크 진행 */
 const copyCnt = ref(0)
@@ -183,6 +187,8 @@ async function record(state: 'submited' | 'end') {
 }
 
 async function getData(logId?: string) {
+    const queryParams = route.query
+
     try {
         const params = {
             userId: route.query.user_id,
@@ -197,8 +203,12 @@ async function getData(logId?: string) {
 
         // store에 데이터 저장
         missionStore.setData(res.data)
+
+        // if (missionStore.data?.videoList[0].skipTime > 0) {
+        // }
+        videoTrigger.value = 0
     } catch (error) {
-        router.push('/fail')
+        router.push({ path: '/fail', query: queryParams })
 
         // alert(JSON.stringify(error))
         console.log(error)
@@ -292,11 +302,38 @@ watch(
         }
     },
 )
-function nextVideo() {
-    const currentIdx = videoTrigger.value
+function nextVideo(divide: 'button' | 'touched') {
+    if (
+        divide === 'touched' &&
+        missionStore.data?.videoList[videoTrigger.value as number]?.skipTime > 0
+    ) {
+        return
+    }
+    const currentIdx = videoTrigger.value as number
     const videoList = missionStore.data.videoList
     const lastIdx = videoList.length - 1
     const currentVideo = videoList[currentIdx]
+
+    if (!currentVideo) return
+
+    const skipTime = Number(currentVideo.skipTime)
+
+    // =====================================
+    // 📌 skipTime 영상 → 버튼으로만 이동
+    // =====================================
+    if (skipTime > 0) {
+        // 마지막 영상
+        if (currentIdx === lastIdx) {
+            videoTrigger.value = lastIdx + 1
+            window.scrollTo({ top: 0 })
+            return
+        }
+
+        // 다음 영상
+        videoTrigger.value = (videoTrigger.value as number) + 1
+        showSkipButton.value = false
+        return
+    }
 
     const isLast = currentIdx === lastIdx
     const isSkippable = currentVideo.isSkippable === 'Y'
@@ -342,32 +379,11 @@ function nextVideo() {
     goNext()
 
     function goNext() {
-        videoTrigger.value += 1
+        videoTrigger.value = (videoTrigger.value as number) + 1
+
         canClickNext.value = false
     }
 }
-// function handleVideoEnd(index: number) {
-//     const lastIdx = missionStore.data.videoList.length - 1
-
-//     // 마지막 영상이면 → 자동 종료 후 섹션 숨김
-//     if (index === lastIdx) {
-//         videoTrigger.value = lastIdx + 1
-//         window.scrollTo({ top: 0 })
-//         return
-//     }
-
-//     const currentVideo = missionStore.data.videoList[index]
-
-//     // 스킵 불가(N) 영상은 → 영상 끝날 때만 자동 다음
-//     if (currentVideo.isSkippable === 'N') {
-//         videoTrigger.value += 1
-//         canClickNext.value = false
-//         return
-//     }
-
-//     // 스킵 가능한(Y) 영상이면 → 터치해도, 또는 영상 끝나도 넘어갈 수 있도록 플래그만 true
-//     canClickNext.value = true
-// }
 
 function handleVideoEnd(index: number) {
     const videoList = missionStore.data.videoList
@@ -397,10 +413,37 @@ function maskName(str: string, maskChar = 'O') {
 
 const naverRedirect = ref<string>('')
 
+watch(videoTrigger, async (idx) => {
+    if (idx === null) return
+    showSkipButton.value = false
+
+    if (skipTimer.value) {
+        clearTimeout(skipTimer.value)
+        skipTimer.value = null
+    }
+
+    const video = missionStore.data?.videoList?.[idx]
+    if (!video) return
+
+    const skipTime = Number(video.skipTime)
+
+    // skipTime > 0 이면 자동 타이머로 버튼 노출
+    if (skipTime > 0) {
+        skipTimer.value = window.setTimeout(() => {
+            showSkipButton.value = true
+        }, skipTime * 1000)
+    } else {
+        // 기존 로직 유지 (isSkippable 기반)
+        showSkipButton.value = false
+    }
+})
+
 onMounted(() => {
     idleTimer.start(() => record('end'))
 
-    getData()
+    if (!missionStore.data) {
+        getData()
+    }
 
     if (route.query.mission == 'true') {
         startMission.value = 1
@@ -430,13 +473,22 @@ onBeforeUnmount(() => {
         <div
             class="video-sec"
             v-if="
+                videoTrigger !== null &&
                 videoTrigger < missionStore.data?.videoList?.length &&
                 missionStore.data &&
                 !viewVideo.novideo &&
                 missionStore.data.isVideoExposureNeeded === 'Y'
             "
-            @click="nextVideo"
+            @click="() => nextVideo('touched')"
         >
+            <button
+                v-if="showSkipButton"
+                class="skipButton"
+                :class="{ visible: showSkipButton }"
+                @click="() => nextVideo('button')"
+            >
+                건너뛰기<i class="skip"></i>
+            </button>
             <video
                 preload="auto"
                 playsinline
@@ -680,6 +732,30 @@ onBeforeUnmount(() => {
         height: 100vh;
         z-index: 2;
 
+        .skipButton {
+            position: absolute;
+            top: 30px;
+            right: 20px;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.5);
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.25);
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 7px 5px 7px 16px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+
+            & .skip {
+                display: inline-block;
+                width: 25px;
+                height: 25px;
+                background: url('../assets/icons/skip.svg') no-repeat center center;
+                background-size: cover;
+            }
+        }
         video {
             inset: 0;
             width: 100%;

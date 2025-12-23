@@ -1,13 +1,61 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import 'vue3-carousel/carousel.css'
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
+import { useMissionStore } from '../stores/useMissionStore'
+import axios from 'axios'
+
+const router = useRouter()
+const route = useRoute()
 const close = () => {
     // window.location.href = 'about:blank'
     // window.open('', '_self').close()
     window.close()
 }
+const missionStore = useMissionStore()
+function toQueryString(obj: Record<string, any>): string {
+    const params = new URLSearchParams()
+    for (const key in obj) {
+        if (obj[key] !== undefined && obj[key] !== null) {
+            params.append(key, String(obj[key]))
+        }
+    }
+    return params.toString()
+}
+async function getData(logId?: string) {
+    const queryParams = route.query
+
+    console.log('queryParams', queryParams)
+    try {
+        const params = {
+            ifa: route.query.ifa,
+            userId: route.query.user_id,
+            bzTrackingId: route.query.bz_tracking_id,
+            ...(logId ? { logId, slotId: missionStore.data?.slotId } : {}),
+        }
+
+        const res: any = await axios.get(
+            `https://admin.lightning.ai.kr/api/mission/info?${toQueryString(params)}`,
+        )
+
+        // store에 데이터 저장
+        // missionStore.setData(res.data)
+        missionStore.setData(res.data)
+
+        // router.push({ path: '/', query: queryParams })
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+onMounted(() => {
+    if (!missionStore.data) {
+        // 현재 쿼리 파라미터 가져오기
+
+        getData()
+    }
+})
 </script>
 
 <template>
@@ -17,7 +65,7 @@ const close = () => {
         <div class="obs">
             <img src="../assets/imgs/box.png" />
         </div>
-        <button class="end" @click="close">이전 화면으로 돌아가기</button>
+        <button class="end" @click="() => getData()">이전 화면으로 돌아가기</button>
     </section>
 </template>
 

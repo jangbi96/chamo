@@ -39,7 +39,7 @@ const nextSlide = () => {
         viewVideo.setData(true)
         router.push({
             path: '/',
-            query: { ...route.query, mission: 'true' },
+            query: { ...route.query, mission: 'true', screenType: missionStore.data?.screenType },
         })
     }
 

@@ -148,6 +148,7 @@ async function record(state: 'submited' | 'end') {
     try {
         const params = {
             logId: missionStore.data?.logId,
+            // logId: 'errorTest',
             logicType: missionStore.data?.logicType,
             middleType: missionStore.data?.middleType,
             userId: route.query.user_id,
@@ -180,8 +181,8 @@ async function record(state: 'submited' | 'end') {
             )
         }
     } catch (error: any) {
-        if (error.status === 409) {
-            triggerError()
+        if (error.response.status === 409) {
+            window.alert('유효하지 않은 미션입니다.')
         }
     }
 }
@@ -446,7 +447,11 @@ onMounted(() => {
     }
 
     if (route.query.mission == 'true') {
-        startMission.value = 1
+        if (route.query?.screenType == '2') {
+            startMission.value = 2
+        } else {
+            startMission.value = 1
+        }
     }
 
     const userAgent = navigator.userAgent.toLowerCase() //userAgent 문자열 값 받아오기
@@ -680,7 +685,19 @@ onBeforeUnmount(() => {
         >
             참여방법 확인
         </button>
-        <button class="nextbtn" @click="() => (startMission = 1)" v-if="startMission == 0">
+        <button
+            class="nextbtn"
+            @click="
+                () => {
+                    if (missionStore.data?.screenType == '2') {
+                        startMission = 2
+                    } else {
+                        startMission = 1
+                    }
+                }
+            "
+            v-if="startMission == 0"
+        >
             미션 바로하기
         </button>
         <button

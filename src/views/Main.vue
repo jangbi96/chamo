@@ -136,15 +136,14 @@ function addComma(num: string | number) {
  * 연결 끝의 기준-> 10분, 창 종료
  */
 async function record(state: 'submited' | 'end') {
-    const input = inputValue.value.replace(/\s+/g, '')
-    const correctCondition = missionStore.data?.hashtag?.includes(input)
+    const input = inputValue.value.replace(/\s+/g, '').toLowerCase()
+    const correctCondition = missionStore.data?.hashtag?.toLowerCase().includes(input)
 
     if (inputValue.value.length === 1 || !inputValue.value || !correctCondition) {
         triggerError()
         return
     }
 
-    // return
     try {
         const params = {
             logId: missionStore.data?.logId,
@@ -229,7 +228,12 @@ const openNaverAppForAndroid = () => {
     const encodedUrl = encodeURIComponent(targetLink)
 
     // 2. 네이버 앱 내부 브라우저로 특정 URL 열기 Intent
-    const appLink = `intent://inappbrowser?url=${encodedUrl}&target=new&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl};end;`
+    // const appLink = `intent://inappbrowser?url=${encodedUrl}&target=new&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl};end;`
+    const appLink = targetLink
+    window.open(appLink, '_blank')
+    startMission.value = 3
+
+    return
 
     // 1️⃣ 유저가 클릭했을 때 앱 실행 시도
     const link = document.createElement('a')
@@ -267,23 +271,13 @@ function openNaverAppForApple() {
     const encodedUrl = encodeURIComponent(targetLink)
 
     // const appLink1 = 'naversearchapp://default?version=1'
-    const appLink = `naversearchapp://inappbrowser?url=${encodedUrl}&target=new&version=6`
-    // const appLink2 = `naversearchapp://inappbrowser?url=https%3A%2F%2Flightning.ai.kr%2Ftest.html&target=new&version=6`
+    // const appLink = `naversearchapp://inappbrowser?url=${encodedUrl}&target=new&version=6`
+    const appLink = targetLink
 
-    // const encodeUrl3 = encodeURIComponent(
-    //     `https://m.search.naver.com/search.naver?sm=mob_hty.top&where=m&query=${keyword}`,
-    // )
-    // const encodeUrl4 = encodeURIComponent(
-    //     `https://m.search.naver.com/search.naver?sm=mtb_hty.top&where=m&query=${keyword}`,
-    // )
-    // const appLink3 = `naversearchapp://inappbrowser?url=${encodeUrl3}&target=new&version=6&cleardata=1`
-    // const appLink4 = `naversearchapp://inappbrowser?url=${encodeUrl4}&target=new&version=6&cleardata=1`
-    // const appLink2 = 'https://m.facebook.com/share/p/1FXg6CyJaB/'
+    window.open(appLink, '_blank')
+    startMission.value = 3
 
-    // window.alert((appLinkOb as any)[missionStore.data.screenType])
-    // window.location.href = appLink
-    // 1️⃣ 유저가 클릭했을 때 앱 실행 시도
-
+    return
     const link = document.createElement('a')
     link.href = appLink
     document.body.appendChild(link)
@@ -452,6 +446,10 @@ onMounted(() => {
         } else {
             startMission.value = 1
         }
+    }
+
+    if (route.query.fromfail == 'true') {
+        videoTrigger.value = 0
     }
 
     const userAgent = navigator.userAgent.toLowerCase() //userAgent 문자열 값 받아오기

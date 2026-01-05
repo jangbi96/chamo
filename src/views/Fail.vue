@@ -43,7 +43,7 @@ async function getData(logId?: string) {
         // missionStore.setData(res.data)
         missionStore.setData(res.data)
 
-        // router.push({ path: '/', query: queryParams })
+        router.push({ path: '/', query: { ...queryParams, fromfail: 'true' } })
     } catch (error) {
         console.log(error)
     }

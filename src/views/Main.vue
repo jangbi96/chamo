@@ -136,15 +136,14 @@ function addComma(num: string | number) {
  * 연결 끝의 기준-> 10분, 창 종료
  */
 async function record(state: 'submited' | 'end') {
-    const input = inputValue.value.replace(/\s+/g, '')
-    const correctCondition = missionStore.data?.hashtag?.includes(input)
+    const input = inputValue.value.replace(/\s+/g, '').toLowerCase()
+    const correctCondition = missionStore.data?.hashtag?.toLowerCase().includes(input)
 
     if (inputValue.value.length === 1 || !inputValue.value || !correctCondition) {
         triggerError()
         return
     }
 
-    // return
     try {
         const params = {
             logId: missionStore.data?.logId,
@@ -304,6 +303,7 @@ function openNaverAppForApple() {
 
     // return
 
+    return
     const link = document.createElement('a')
     link.href = appLink
     document.body.appendChild(link)
@@ -472,7 +472,7 @@ onMounted(() => {
         }
     }
 
-    if (route.query.fromFail == 'true') {
+    if (route.query.fromfail == 'true') {
         videoTrigger.value = 0
     }
 

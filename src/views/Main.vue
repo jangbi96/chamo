@@ -224,16 +224,37 @@ const openNaverAppForAndroid = () => {
     // const type4FallbackUrl = `https://m.search.naver.com/search.naver?sm=mtb_hty.top&where=m&query=${keyword}`
 
     // missionStore.data.extenalUrl
+
     const targetLink = missionStore.data.extenalUrl
     const storeUrl = 'https://play.google.com/store/apps/details?id=com.nhn.android.search'
-    const encodedUrl = encodeURIComponent(targetLink)
+    // const encodedUrl = encodeURIComponent(targetLink)
 
-    // 2. 네이버 앱 내부 브라우저로 특정 URL 열기 Intent
-    const appLink = `intent://inappbrowser?url=${encodedUrl}&target=new&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl};end;`
+    // const appLink = `intent://inappbrowser?url=${encodedUrl}&target=new&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl};end;`
 
-    // 1️⃣ 유저가 클릭했을 때 앱 실행 시도
+    const encodedUrl = encodeURIComponent('m.search.naver.com/search.naver?query=키워드')
+    const url = [
+        // 삼성인터넷, 네이버 앱 둘 중 선택. package에 네이버기 때문에 스키마도 naversearchapp, 네이버 앱 없으면 설치페이지 이동
+        `intent://inappbrowser?url=${encodedUrl}&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl};end;`,
+        // (삼성인터넷, 크롬 선택)크롬이 정상적으로 이해할 수 있는 순수 url 만 전달해야함. inappbrowser형식은 맞지 않음. 검색결과 화면은
+        `intent://m.naver.com#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=m.naver.com;end;`,
+        // 삼성인터넷, 크롬, 크롬앱 없으면 그냥 현재 브라우저에서 이동 (fallback)
+        `intent://m.search.naver.com/search.naver?query=키워드&target=new#Intent;scheme=https;S.browser_fallback_url=m.search.naver.com/search.naver?query=키워드&target=new;end;`,
+        'http://m.naver.com',
+    ]
+
+    // const appLink = encodedUrl
+    const appLink = url[1]
+
+    // window.open(targetLink, '_blank')
+    // startMission.value = 3
+
+    // return
+
+    // 1️⃣ 유저가 클릭했을 때 앱 실행 시도안
     const link = document.createElement('a')
     link.href = appLink
+    // link.target = '_blank' // ✅ 새 창/새 탭 열기
+    // link.rel = 'noopener noreferrer' // 보안 권장
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -260,29 +281,28 @@ const agent = ref('android')
 function openNaverAppForApple() {
     const keyword = encodeURIComponent(missionStore.data?.workKeyword)
 
-    // missionStore.data.extenalUrl
-    // const targetLink = (urlByScreenType.value as any)[missionStore.data.screenType]
     const targetLink = missionStore.data.extenalUrl
 
     const encodedUrl = encodeURIComponent(targetLink)
 
-    // const appLink1 = 'naversearchapp://default?version=1'
-    const appLink = `naversearchapp://inappbrowser?url=${encodedUrl}&target=new&version=6`
-    // const appLink2 = `naversearchapp://inappbrowser?url=https%3A%2F%2Flightning.ai.kr%2Ftest.html&target=new&version=6`
+    const url = [
+        `naversearchapp://inappbrowser?url=${encodedUrl}&target=new&version=6`, //  네이버 앱 존재시 : 앱열림 , 앱 없을시 : 유효하지 않은 주소
+        // 'https://m.naver.com',
+        `googlechrome://${encodeURIComponent('m.naver.com')}`, // 앱 존재시 : 앱열림 앱 없을시 : 유효하지 않은 주소라고 뜸.
+        `https://www.google.com/search?q=${encodeURIComponent('네이버')}`, // 앱 존재시 : 앱 열림, 앱 없을시 : 구글 웹 페이지 열림.
+        'https://m.naver.com', // 웹으로 열림
+    ]
+    // const appLink = `naversearchapp://inappbrowser?url=${encodedUrl}&target=new&version=6`
+    // const appLink = `https://www.google.com/search?q=${encodedUrl}`
+    // const appLink = `https://www.google.com/search?q=site:naver.com`
+    // const appLink = `googlechrome://navigate?url=${encodeURIComponent('네이버')}`
+    // const appLink = `https://www.google.com/search?q=${encodeURIComponent('네이버')}`
+    const appLink = url[0]
 
-    // const encodeUrl3 = encodeURIComponent(
-    //     `https://m.search.naver.com/search.naver?sm=mob_hty.top&where=m&query=${keyword}`,
-    // )
-    // const encodeUrl4 = encodeURIComponent(
-    //     `https://m.search.naver.com/search.naver?sm=mtb_hty.top&where=m&query=${keyword}`,
-    // )
-    // const appLink3 = `naversearchapp://inappbrowser?url=${encodeUrl3}&target=new&version=6&cleardata=1`
-    // const appLink4 = `naversearchapp://inappbrowser?url=${encodeUrl4}&target=new&version=6&cleardata=1`
-    // const appLink2 = 'https://m.facebook.com/share/p/1FXg6CyJaB/'
+    // window.open(targetLink, '_blank')
+    // startMission.value = 3
 
-    // window.alert((appLinkOb as any)[missionStore.data.screenType])
-    // window.location.href = appLink
-    // 1️⃣ 유저가 클릭했을 때 앱 실행 시도
+    // return
 
     const link = document.createElement('a')
     link.href = appLink
@@ -386,12 +406,12 @@ function nextVideo(divide: 'button' | 'touched') {
     }
 }
 
-function handleVideoEnd(index: number) {
+function handleVideoEnd(index: string | number) {
     const videoList = missionStore.data.videoList
     const lastIdx = videoList.length - 1
 
     // 마지막 영상이 끝났으면 (Y/N 상관없이) 자동 종료
-    if (index === lastIdx) {
+    if (index == lastIdx) {
         videoTrigger.value = lastIdx + 1
         window.scrollTo({ top: 0 })
         return
@@ -411,8 +431,6 @@ function maskName(str: string, maskChar = 'O') {
     // 3글자 이상이면 앞 2글자 + (나머지 길이만큼 O)
     return s.slice(0, 2) + maskChar.repeat(len - 2)
 }
-
-const naverRedirect = ref<string>('')
 
 watch(videoTrigger, async (idx) => {
     if (idx === null) return
@@ -454,6 +472,10 @@ onMounted(() => {
         }
     }
 
+    if (route.query.fromFail == 'true') {
+        videoTrigger.value = 0
+    }
+
     const userAgent = navigator.userAgent.toLowerCase() //userAgent 문자열 값 받아오기
 
     if (userAgent.indexOf('android') > -1) {
@@ -475,7 +497,7 @@ onBeforeUnmount(() => {
 
 <template>
     <section class="section">
-        <div
+        <!-- <div
             class="video-sec"
             v-if="
                 videoTrigger !== null &&
@@ -509,7 +531,7 @@ onBeforeUnmount(() => {
             >
                 <source :src="missionStore.data.domainUrl + url.filename" type="video/mp4" />
             </video>
-        </div>
+        </div> -->
         <strong class="poi"
             ><img class="coinimg" src="../assets/imgs/mini-coin.png" />선착순 미션</strong
         >

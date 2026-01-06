@@ -225,33 +225,32 @@ const openNaverAppForAndroid = () => {
     // missionStore.data.extenalUrl
 
     const targetLink = missionStore.data.extenalUrl
-    const storeUrl = 'https://play.google.com/store/apps/details?id=com.nhn.android.search'
     // const encodedUrl = encodeURIComponent(targetLink)
 
     // const appLink = `intent://inappbrowser?url=${encodedUrl}&target=new&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl};end;`
 
-    const encodedUrl = encodeURIComponent('m.search.naver.com/search.naver?query=키워드')
-    const url = [
-        // 삼성인터넷, 네이버 앱 둘 중 선택. package에 네이버기 때문에 스키마도 naversearchapp, 네이버 앱 없으면 설치페이지 이동
-        `intent://inappbrowser?url=${encodedUrl}&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl};end;`,
-        // (삼성인터넷, 크롬 선택)크롬이 정상적으로 이해할 수 있는 순수 url 만 전달해야함. inappbrowser형식은 맞지 않음. 검색결과 화면은
-        `intent://m.naver.com#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=m.naver.com;end;`,
-        // 삼성인터넷, 크롬, 크롬앱 없으면 그냥 현재 브라우저에서 이동 (fallback)
-        `intent://m.search.naver.com/search.naver?query=키워드&target=new#Intent;scheme=https;S.browser_fallback_url=m.search.naver.com/search.naver?query=키워드&target=new;end;`,
-        'http://m.naver.com',
-    ]
+    // const url = [
+    //     // 삼성인터넷, 네이버 앱 둘 중 선택. package에 네이버기 때문에 스키마도 naversearchapp, 네이버 앱 없으면 설치페이지 이동
+    //     `https://play.google.com/store/apps/details?id=com.android.chrome`,
+    //     `intent://inappbrowser?url=${encodedUrl}&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl};end;`,
+    //     // (삼성인터넷, 크롬 선택)크롬이 정상적으로 이해할 수 있는 순수 url 만 전달해야함. inappbrowser형식은 맞지 않음. 검색결과 화면은
+    //     `intent://m.naver.com#Intent;scheme=https;package=com.android.chrome;`,
+    //     // 삼성인터넷, 크롬, 크롬앱 없으면 그냥 현재 브라우저에서 이동 (fallback)
+    //     `intent://m.search.naver.com/search.naver?query=키워드&target=new#Intent;scheme=https;S.browser_fallback_url=m.search.naver.com/search.naver?query=키워드&target=new;end;`,
+    //     'http://m.naver.com',
+    // ]
 
     // const appLink = encodedUrl
-    const appLink = url[1]
+    // const appLink = url[1]
 
-    // window.open(targetLink, '_blank')
-    // startMission.value = 3
+    window.open(targetLink, '_blank')
+    startMission.value = 3
 
-    // return
+    return
 
     // 1️⃣ 유저가 클릭했을 때 앱 실행 시도안
     const link = document.createElement('a')
-    link.href = appLink
+    // link.href = appLink
     // link.target = '_blank' // ✅ 새 창/새 탭 열기
     // link.rel = 'noopener noreferrer' // 보안 권장
     document.body.appendChild(link)
@@ -267,7 +266,7 @@ const openNaverAppForAndroid = () => {
                 '네이버 앱이 설치되어 있지 않습니다.\n설치 페이지로 이동하시겠습니까?',
             )
             if (goToStore) {
-                window.location.href = storeUrl
+                // window.location.href = storeUrl
             }
         }
     }, 2000)
@@ -284,33 +283,46 @@ function openNaverAppForApple() {
 
     const encodedUrl = encodeURIComponent(targetLink)
 
-    const url = [
-        `naversearchapp://inappbrowser?url=${encodedUrl}&target=new&version=6`, //  네이버 앱 존재시 : 앱열림 , 앱 없을시 : 유효하지 않은 주소
-        // 'https://m.naver.com',
-        `googlechrome://${encodeURIComponent('m.naver.com')}`, // 앱 존재시 : 앱열림 앱 없을시 : 유효하지 않은 주소라고 뜸.
-        `https://www.google.com/search?q=${encodeURIComponent('네이버')}`, // 앱 존재시 : 앱 열림, 앱 없을시 : 구글 웹 페이지 열림.
-        'https://m.naver.com', // 웹으로 열림
-    ]
+    // const url = [
+    //     `naversearchapp://inappbrowser?url=${encodedUrl}&target=new&version=6`, //  네이버 앱 존재시 : 앱열림 , 앱 없을시 : 유효하지 않은 주소
+    //     // 'https://m.naver.com',
+    //     `googlechrome://${encodeURIComponent('m.naver.com')}`, // 앱 존재시 : 앱열림 앱 없을시 : 유효하지 않은 주소라고 뜸.
+    //     `https://www.google.com/search?q=${encodeURIComponent('네이버')}`, // 앱 존재시 : 앱 열림, 앱 없을시 : 구글 웹 페이지 열림.
+    //     'https://m.naver.com', // 웹으로 열림
+    // ]
     // const appLink = `naversearchapp://inappbrowser?url=${encodedUrl}&target=new&version=6`
     // const appLink = `https://www.google.com/search?q=${encodedUrl}`
     // const appLink = `https://www.google.com/search?q=site:naver.com`
     // const appLink = `googlechrome://navigate?url=${encodeURIComponent('네이버')}`
     // const appLink = `https://www.google.com/search?q=${encodeURIComponent('네이버')}`
-    const appLink = url[0]
+    // const appLink = targetLink
 
-    // window.open(targetLink, '_blank')
-    // startMission.value = 3
-
-    // return
+    window.open(targetLink, '_blank')
+    startMission.value = 3
 
     return
+
     const link = document.createElement('a')
-    link.href = appLink
+    // link.href = appLink
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
 
     startMission.value = 3
+    var appstoreUrl = 'http://itunes.apple.com/kr/app/id393499958?mt=8'
+    const now = Date.now()
+    // 2️⃣ 앱이 안 열리면 fallback (앱 미설치)
+    setTimeout(() => {
+        if (Date.now() - now < 2500) {
+            // 앱이 실행되지 않았다고 판단되면
+            const goToStore = window.confirm(
+                '네이버 앱이 설치되어 있지 않습니다.\n설치 페이지로 이동하시겠습니까?',
+            )
+            if (goToStore) {
+                window.location.href = appstoreUrl
+            }
+        }
+    }, 2000)
 }
 
 watch(
@@ -497,7 +509,7 @@ onBeforeUnmount(() => {
 
 <template>
     <section class="section">
-        <!-- <div
+        <div
             class="video-sec"
             v-if="
                 videoTrigger !== null &&
@@ -531,7 +543,7 @@ onBeforeUnmount(() => {
             >
                 <source :src="missionStore.data.domainUrl + url.filename" type="video/mp4" />
             </video>
-        </div> -->
+        </div>
         <strong class="poi"
             ><img class="coinimg" src="../assets/imgs/mini-coin.png" />선착순 미션</strong
         >

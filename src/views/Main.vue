@@ -224,7 +224,12 @@ const openNaverAppForAndroid = () => {
 
     // missionStore.data.extenalUrl
 
-    const targetLink = missionStore.data.extenalUrl
+    // const targetLink = missionStore.data.extenalUrl
+    const bridgeDomain = missionStore.data?.bridgeDomain
+    const externalUrl = missionStore.data?.extenalUrl
+
+    const targetLink = `${bridgeDomain}?externalUrl=${encodeURIComponent(externalUrl)}`
+
     // const encodedUrl = encodeURIComponent(targetLink)
 
     // const appLink = `intent://inappbrowser?url=${encodedUrl}&target=new&version=6#Intent;scheme=naversearchapp;package=com.nhn.android.search;S.browser_fallback_url=${encodedUrl};end;`
@@ -245,12 +250,15 @@ const openNaverAppForAndroid = () => {
 
     window.open(targetLink, '_blank')
     startMission.value = 3
-
     return
+
+    // window.open(externalUrl, '_blank')
+    // startMission.value = 3
+    // return
 
     // 1️⃣ 유저가 클릭했을 때 앱 실행 시도안
     const link = document.createElement('a')
-    // link.href = appLink
+    link.href = targetLink
     // link.target = '_blank' // ✅ 새 창/새 탭 열기
     // link.rel = 'noopener noreferrer' // 보안 권장
     document.body.appendChild(link)
@@ -259,6 +267,7 @@ const openNaverAppForAndroid = () => {
 
     const now = Date.now()
     // 2️⃣ 앱이 안 열리면 fallback (앱 미설치)
+
     setTimeout(() => {
         if (Date.now() - now < 2500) {
             // 앱이 실행되지 않았다고 판단되면
@@ -279,9 +288,10 @@ const agent = ref('android')
 function openNaverAppForApple() {
     const keyword = encodeURIComponent(missionStore.data?.workKeyword)
 
-    const targetLink = missionStore.data.extenalUrl
-
-    const encodedUrl = encodeURIComponent(targetLink)
+    const bridgeDomain = missionStore.data?.bridgeDomain
+    const externalUrl = missionStore.data?.extenalUrl
+    const targetLink = `${bridgeDomain}?externalUrl=${encodeURIComponent(externalUrl)}`
+    // const targetLink = `https://cackchome.com/?externalUrl=https://m.search.naver.com/search.naver?query=%EC%9E%91%EC%97%85%ED%82%A4%EC%9B%8C%EB%93%9C&where=m&sm=mob_hty.idx&ackey=ejtks65o&qdt=%ED%81%90%ED%81%90%ED%8B%B0`
 
     // const url = [
     //     `naversearchapp://inappbrowser?url=${encodedUrl}&target=new&version=6`, //  네이버 앱 존재시 : 앱열림 , 앱 없을시 : 유효하지 않은 주소
@@ -303,7 +313,7 @@ function openNaverAppForApple() {
     return
 
     const link = document.createElement('a')
-    // link.href = appLink
+    link.href = targetLink
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -509,7 +519,7 @@ onBeforeUnmount(() => {
 
 <template>
     <section class="section">
-        <div
+        <!-- <div
             class="video-sec"
             v-if="
                 videoTrigger !== null &&
@@ -525,6 +535,7 @@ onBeforeUnmount(() => {
                 class="skipButton"
                 :class="{ visible: showSkipButton }"
                 @click="() => nextVideo('button')"
+                gsd
             >
                 건너뛰기<i class="skip"></i>
             </button>
@@ -543,7 +554,7 @@ onBeforeUnmount(() => {
             >
                 <source :src="missionStore.data.domainUrl + url.filename" type="video/mp4" />
             </video>
-        </div>
+        </div> -->
         <strong class="poi"
             ><img class="coinimg" src="../assets/imgs/mini-coin.png" />선착순 미션</strong
         >

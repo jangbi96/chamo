@@ -106,7 +106,11 @@ async function showMessage(keyword: string) {
 
     setTimeout(() => {
         isCopy.value = false
+        openNaverAppForApple()
     }, 1000)
+    setTimeout(() => {
+        startMission.value = 1
+    }, 2000)
 }
 
 const triggerError = () => {
@@ -176,7 +180,7 @@ async function record(state: 'submited' | 'end') {
         // 연결이 끊긴경우
         if (state === 'end') {
             const res1 = await axios.post(
-                `https://admin.lightning.ai.kr/api/mission/attemptRecord--?${toQueryString(params)}`,
+                `https://admin.lightning.ai.kr/api/mission/attemptRecord?${toQueryString(params)}`,
             )
         }
     } catch (error: any) {
@@ -186,7 +190,8 @@ async function record(state: 'submited' | 'end') {
     }
 }
 
-async function getData(logId?: string) {
+// 그냥 미션상품 변경하기
+async function getData(logId?: string, fb = false) {
     const queryParams = route.query
 
     try {
@@ -207,6 +212,21 @@ async function getData(logId?: string) {
         // if (missionStore.data?.videoList[0].skipTime > 0) {
         // }
         videoTrigger.value = 0
+
+        if (fb) {
+            if (route.query.howto) {
+                router.push({ path: '/howto', query: { ...route.query } })
+            } else if (!route.query.logId) {
+                startMission.value = 3
+            }
+        }
+
+        if (route.query.logId) {
+            const { logId, ...rest } = route.query
+            router.replace({
+                query: rest,
+            })
+        }
     } catch (error) {
         router.push({ path: '/fail', query: queryParams })
 
@@ -248,11 +268,7 @@ const openNaverAppForAndroid = () => {
     // const appLink = encodedUrl
     // const appLink = url[1]
 
-    window.open(targetLink, '_blank')
-    startMission.value = 3
-    return
-
-    // window.open(externalUrl, '_blank')
+    // window.open(targetLink, '_blank')
     // startMission.value = 3
     // return
 
@@ -260,25 +276,25 @@ const openNaverAppForAndroid = () => {
     const link = document.createElement('a')
     link.href = targetLink
     // link.target = '_blank' // ✅ 새 창/새 탭 열기
-    // link.rel = 'noopener noreferrer' // 보안 권장
+    link.rel = 'noopener noreferrer' // 보안 권장
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
 
-    const now = Date.now()
-    // 2️⃣ 앱이 안 열리면 fallback (앱 미설치)
+    // const now = Date.now()
+    // // 2️⃣ 앱이 안 열리면 fallback (앱 미설치)
 
-    setTimeout(() => {
-        if (Date.now() - now < 2500) {
-            // 앱이 실행되지 않았다고 판단되면
-            const goToStore = window.confirm(
-                '네이버 앱이 설치되어 있지 않습니다.\n설치 페이지로 이동하시겠습니까?',
-            )
-            if (goToStore) {
-                // window.location.href = storeUrl
-            }
-        }
-    }, 2000)
+    // setTimeout(() => {
+    //     if (Date.now() - now < 2500) {
+    //         // 앱이 실행되지 않았다고 판단되면
+    //         const goToStore = window.confirm(
+    //             '네이버 앱이 설치되어 있지 않습니다.\n설치 페이지로 이동하시겠습니까?',
+    //         )
+    //         if (goToStore) {
+    //             // window.location.href = storeUrl
+    //         }
+    //     }
+    // }, 2000)
 
     startMission.value = 3
 }
@@ -290,8 +306,8 @@ function openNaverAppForApple() {
 
     const bridgeDomain = missionStore.data?.bridgeDomain
     const externalUrl = missionStore.data?.extenalUrl
-    const targetLink = `${bridgeDomain}?externalUrl=${encodeURIComponent(externalUrl)}`
-    // const targetLink = `https://cackchome.com/?externalUrl=https://m.search.naver.com/search.naver?query=%EC%9E%91%EC%97%85%ED%82%A4%EC%9B%8C%EB%93%9C&where=m&sm=mob_hty.idx&ackey=ejtks65o&qdt=%ED%81%90%ED%81%90%ED%8B%B0`
+    // const targetLink = `${bridgeDomain}?externalUrl=${encodeURIComponent(externalUrl)}`
+    // const targetLink = `${bridgeDomain}?externalUrl=${encodeURIComponent(externalUrl)}`
 
     // const url = [
     //     `naversearchapp://inappbrowser?url=${encodedUrl}&target=new&version=6`, //  네이버 앱 존재시 : 앱열림 , 앱 없을시 : 유효하지 않은 주소
@@ -307,32 +323,66 @@ function openNaverAppForApple() {
     // const appLink = `https://www.google.com/search?q=${encodeURIComponent('네이버')}`
     // const appLink = targetLink
 
-    window.open(targetLink, '_blank')
-    startMission.value = 3
+    // window.open(targetLink, '_blank')
+    // startMission.value = 3
 
-    return
+    // return
 
+    // const query = {
+    //     page: Math.floor(missionStore.data?.currentRank / 40) + 1,
+    //     rank: missionStore.data?.currentRank % 40,
+    //     restText: missionStore.restText,
+    //     lprice: missionStore.data?.lprice ? addComma(missionStore.data?.lprice) : '',
+    //     mallName: missionStore.data?.mallName,
+    //     externalUrl: externalUrl,
+    // }
+    function base64Encode(str: string) {
+        return btoa(
+            new TextEncoder()
+                .encode(str)
+                .reduce((acc, byte) => acc + String.fromCharCode(byte), ''),
+        )
+    }
+
+    // 이미 브릿지에서 온 페이지인가
+    const alreadyfb = !!route.query.fb
+    const alreadyLogId = !!route.query.logId
+    const query = {
+        p: Math.floor(missionStore.data?.currentRank / 40) + 1,
+        r: missionStore.data?.currentRank % 40,
+        t: missionStore.restText,
+        l: missionStore.data?.lprice ? addComma(missionStore.data?.lprice) : '',
+        m: missionStore.data?.mallName,
+        u: externalUrl,
+        iu: missionStore.data?.imageUrl,
+        sch: window.location.search + `${alreadyfb ? '' : '&fb=true'}`,
+        logId: missionStore.data?.logId,
+    }
+    const targetLink = `${bridgeDomain}?data=${base64Encode(JSON.stringify(query))}`
+
+    // return
     const link = document.createElement('a')
     link.href = targetLink
+    link.rel = 'noopener noreferrer' // 보안 권장
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
 
-    startMission.value = 3
-    var appstoreUrl = 'http://itunes.apple.com/kr/app/id393499958?mt=8'
-    const now = Date.now()
-    // 2️⃣ 앱이 안 열리면 fallback (앱 미설치)
-    setTimeout(() => {
-        if (Date.now() - now < 2500) {
-            // 앱이 실행되지 않았다고 판단되면
-            const goToStore = window.confirm(
-                '네이버 앱이 설치되어 있지 않습니다.\n설치 페이지로 이동하시겠습니까?',
-            )
-            if (goToStore) {
-                window.location.href = appstoreUrl
-            }
-        }
-    }, 2000)
+    // startMission.value = 3
+    // var appstoreUrl = 'http://itunes.apple.com/kr/app/id393499958?mt=8'
+    // const now = Date.now()
+    // // 2️⃣ 앱이 안 열리면 fallback (앱 미설치)
+    // setTimeout(() => {
+    //     if (Date.now() - now < 2500) {
+    //         // 앱이 실행되지 않았다고 판단되면
+    //         const goToStore = window.confirm(
+    //             '네이버 앱이 설치되어 있지 않습니다.\n설치 페이지로 이동하시겠습니까?',
+    //         )
+    //         if (goToStore) {
+    //             window.location.href = appstoreUrl
+    //         }
+    //     }
+    // }, 2000)
 }
 
 watch(
@@ -483,6 +533,10 @@ onMounted(() => {
     idleTimer.start(() => record('end'))
 
     if (!missionStore.data) {
+        if (route.query.fb == 'true' || route.query.logId) {
+            getData(route.query.logId as string, true)
+            return
+        }
         getData()
     }
 
@@ -519,7 +573,7 @@ onBeforeUnmount(() => {
 
 <template>
     <section class="section">
-        <!-- <div
+        <div
             class="video-sec"
             v-if="
                 videoTrigger !== null &&
@@ -554,7 +608,7 @@ onBeforeUnmount(() => {
             >
                 <source :src="missionStore.data.domainUrl + url.filename" type="video/mp4" />
             </video>
-        </div> -->
+        </div>
         <strong class="poi"
             ><img class="coinimg" src="../assets/imgs/mini-coin.png" />선착순 미션</strong
         >
@@ -735,7 +789,8 @@ onBeforeUnmount(() => {
             @click="
                 () => {
                     if (missionStore.data?.screenType == '2') {
-                        startMission = 2
+                        // startMission = 2;
+                        openNaverAppForApple()
                     } else {
                         startMission = 1
                     }
@@ -753,18 +808,13 @@ onBeforeUnmount(() => {
             키워드 복사
         </button>
 
-        <button
-            class="nextbtn"
-            v-if="startMission === 2 && agent === 'apple'"
-            @click="openNaverAppForApple"
-        >
+        <button class="nextbtn" v-if="startMission === 2 && agent === 'apple'">
             미션 시작하기
         </button>
         <a
             class="nextbtn"
             v-if="startMission === 2 && agent === 'android'"
             href="naversearchapp://default?version=1"
-            @click.prevent="openNaverAppForAndroid"
         >
             미션 시작하기
         </a>
@@ -1342,7 +1392,7 @@ onBeforeUnmount(() => {
 /* transition name="fade-up" 에 대응하는 클래스들 */
 .fade-up-enter-active,
 .fade-up-leave-active {
-    transition: all 0.5s ease;
+    transition: all 0s ease;
 }
 
 .fade-up-enter-from {

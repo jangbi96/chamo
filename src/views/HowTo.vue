@@ -11,7 +11,7 @@ import {
     Pagination as CarouselPagination,
     Navigation as CarouselNavigation,
 } from 'vue3-carousel'
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 const carousel = ref() // Carousel 인스턴스
 const carouselConfig = {
     itemsToShow: 1,
@@ -25,6 +25,43 @@ const router = useRouter()
 const route = useRoute()
 
 const step = ref(1)
+function openNaverAppForApple() {
+    const keyword = encodeURIComponent(missionStore.data?.workKeyword)
+
+    const bridgeDomain = missionStore.data?.bridgeDomain
+    const externalUrl = missionStore.data?.extenalUrl
+
+    function base64Encode(str: string) {
+        return btoa(
+            new TextEncoder()
+                .encode(str)
+                .reduce((acc, byte) => acc + String.fromCharCode(byte), ''),
+        )
+    }
+
+    // 이미 브릿지에서 온 페이지인가
+    const alreadyfb = !!route.query.fb
+    const alreadyLogId = !!route.query.logId
+    const query = {
+        p: Math.floor(missionStore.data?.currentRank / 40) + 1,
+        r: missionStore.data?.currentRank % 40,
+        t: missionStore.restText,
+        l: missionStore.data?.lprice ? addComma(missionStore.data?.lprice) : '',
+        m: missionStore.data?.mallName,
+        u: externalUrl,
+        iu: missionStore.data?.imageUrl,
+        sch: window.location.search + `${alreadyfb ? '' : '&fb=true'}`,
+        logId: missionStore.data?.logId,
+    }
+    const targetLink = `${bridgeDomain}?data=${base64Encode(JSON.stringify(query))}`
+
+    // return
+    const link = document.createElement('a')
+    link.href = targetLink
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+}
 
 const prevSlide = () => {
     if (step.value === 1) {
@@ -35,12 +72,20 @@ const prevSlide = () => {
 }
 const nextSlide = () => {
     if (step.value === 5) {
+        if (missionStore.data?.screenType === '2') {
+            openNaverAppForApple()
+        } else {
+            router.push({
+                path: '/',
+                query: {
+                    ...route.query,
+                    mission: 'true',
+                    screenType: missionStore.data?.screenType,
+                },
+            })
+        }
         // sessionStorage.setItem('novideo', 'true')
-        viewVideo.setData(true)
-        router.push({
-            path: '/',
-            query: { ...route.query, mission: 'true', screenType: missionStore.data?.screenType },
-        })
+        // viewVideo.setData(true)
     }
 
     carousel.value?.next()
@@ -54,6 +99,14 @@ const onSlideChange = (a: any) => {
     console.log(a)
     step.value = a.currentSlideIndex + 1 // index는 0부터 시작하므로 +1
 }
+
+onMounted(() => {
+    if (!missionStore.data) {
+        const query = route.query
+        delete query.fb
+        router.push({ path: '/', query })
+    }
+})
 </script>
 
 <template>
@@ -103,7 +156,7 @@ const onSlideChange = (a: any) => {
                         <dl>
                             <dt>{{ missionStore.restText }}</dt>
                             <dd>
-                                <span>{{ addComma(missionStore.data?.lprice) }}원</span>
+                                <span>{{ addComma(missionStore.data?.lprice || '') }}원</span>
                                 <em>{{ missionStore.data?.mallName }}</em>
                             </dd>
                         </dl>
@@ -417,3 +470,6 @@ const onSlideChange = (a: any) => {
     }
 }
 </style>
+
+function onbeforeMounted(arg0: () => void) { throw new Error('Function not implemented.') } function
+onBeforeMounted(arg0: () => void) { throw new Error('Function not implemented.') }

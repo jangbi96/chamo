@@ -25,13 +25,26 @@ const router = useRouter()
 const route = useRoute()
 
 const step = ref(1)
+
+function toQueryString(obj: Record<string, any>): string {
+    const params = new URLSearchParams()
+    for (const key in obj) {
+        if (obj[key] !== undefined && obj[key] !== null) {
+            params.append(key, String(obj[key]))
+        }
+    }
+    return params.toString()
+}
 function openNaverAppForApple() {
-    const keyword = encodeURIComponent(missionStore.data?.workKeyword)
+  const keyword = encodeURIComponent(missionStore.data.workKeyword)
 
-    const bridgeDomain = missionStore.data?.bridgeDomain
-    const externalUrl = missionStore.data?.extenalUrl
+  const bridgeDomain = missionStore.data.bridgeDomain
+  const externalUrl = missionStore.data.extenalUrl
 
-    function base64Encode(str: string) {
+  // 이미 브릿지에서 온 페이지인가
+  const alreadyfb = !!route.query.fb
+  const alreadyLogId = !!route.query.logId
+  function base64Encode(str: string) {
         return btoa(
             new TextEncoder()
                 .encode(str)
@@ -39,30 +52,67 @@ function openNaverAppForApple() {
         )
     }
 
-    // 이미 브릿지에서 온 페이지인가
-    const alreadyfb = !!route.query.fb
-    const alreadyLogId = !!route.query.logId
-    const query = {
-        p: Math.floor(missionStore.data?.currentRank / 40) + 1,
-        r: missionStore.data?.currentRank % 40,
-        t: missionStore.restText,
-        l: missionStore.data?.lprice ? addComma(missionStore.data?.lprice) : '',
-        m: missionStore.data?.mallName,
-        u: externalUrl,
-        iu: missionStore.data?.imageUrl,
-        sch: window.location.search + `${alreadyfb ? '' : '&fb=true'}`,
-        logId: missionStore.data?.logId,
-    }
-    const targetLink = `${bridgeDomain}?data=${base64Encode(JSON.stringify(query))}`
+  const query = {
+    p: Math.floor(missionStore.data.currentRank / 40) + 1,
+    r: missionStore.data.currentRank % 40,
+    t: missionStore.restText,
+    l: missionStore.data.lprice ? addComma(missionStore.data.lprice) : '',
+    m: missionStore.data.mallName,
+    u: externalUrl,
+    iu: missionStore.data.imageUrl,
+    sch: window.location.search + (alreadyfb ? '' : '&fb=true'),
+    logId: missionStore.data.logId,
+  }
 
-    // return
+  // form 생성
+//   const form = document.createElement('form')
+//   form.method = 'POST'
+//   form.action = bridgeDomain
+//   form.style.display = 'none'
+
+//   // data 필드 (암호화 없이 그대로)
+//   const dataInput = document.createElement('input')
+//   dataInput.type = 'hidden'
+//   dataInput.name = 'data'
+
+//   dataInput.value = JSON.stringify(query)
+
+//   form.appendChild(dataInput)
+//   document.body.appendChild(form)
+
+//     // form 데이터 콘솔에 찍어보기
+//   // 전송 → 페이지 이동 발생
+
+// //   return;
+//   form.submit()
+  // 정리
+
+    const targetLink = `${bridgeDomain}?${toQueryString(query)}`;
+
+    // // return
     const link = document.createElement('a')
     link.href = targetLink
+    link.rel = 'noopener noreferrer' // 보안 권장
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-}
 
+    // startMission.value = 3
+    // var appstoreUrl = 'http://itunes.apple.com/kr/app/id393499958?mt=8'
+    // const now = Date.now()
+    // // 2️⃣ 앱이 안 열리면 fallback (앱 미설치)
+    // setTimeout(() => {
+    //     if (Date.now() - now < 2500) {
+    //         // 앱이 실행되지 않았다고 판단되면
+    //         const goToStore = window.confirm(
+    //             '네이버 앱이 설치되어 있지 않습니다.\n설치 페이지로 이동하시겠습니까?',
+    //         )
+    //         if (goToStore) {
+    //             window.location.href = appstoreUrl
+    //         }
+    //     }
+    // }, 2000)
+}
 const prevSlide = () => {
     if (step.value === 1) {
         viewVideo.setData(true)

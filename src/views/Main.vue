@@ -124,6 +124,7 @@ const triggerError = () => {
     const input = inputValue.value.replace(/\s+/g, '')
     submittedAnswer.value.push(input)
     inputValue.value = ''
+
     setTimeout(() => {
         wrong.value = false
         test.value = true
@@ -214,9 +215,10 @@ async function getData(logId?: string, fb = false) {
         videoTrigger.value = 0
 
         if (fb) {
-            
+
             const { fb, ...rest } = route.query
-            
+
+            copyCnt.value = Number(route.query.cp) || 0
             router.replace({
                 query: rest,
             });
@@ -309,66 +311,85 @@ const openNaverAppForAndroid = () => {
 const agent = ref('android')
 
 function openNaverAppForApple() {
-  const keyword = encodeURIComponent(missionStore.data.workKeyword)
+    const keyword = encodeURIComponent(missionStore.data.workKeyword)
 
-  const bridgeDomain = missionStore.data.bridgeDomain
-  const externalUrl = missionStore.data.extenalUrl
+    const bridgeDomain = missionStore.data.bridgeDomain
+    //   const bridgeDomain = "https://bridge-cleaner.chamominedev.workers.dev/"
+    //   const bridgeDomain = "https://starber.co.kr/"
+    const externalUrl = missionStore.data.extenalUrl
 
-  // 이미 브릿지에서 온 페이지인가
-  const alreadyfb = !!route.query.fb
-  const alreadyLogId = !!route.query.logId
-  function base64Encode(str: string) {
-        return btoa(
+    // 이미 브릿지에서 온 페이지인가
+    const alreadyfb = !!route.query.fb
+    // function base64Encode(str: string) {
+    //     return btoa(
+    //         new TextEncoder()
+    //             .encode(str)
+    //             .reduce((acc, byte) => acc + String.fromCharCode(byte), ''),
+    //     )
+    // }
+
+
+    function base64UrlEncode(str: string) {
+
+        const b64 = btoa(
             new TextEncoder()
-                .encode(str)
-                .reduce((acc, byte) => acc + String.fromCharCode(byte), ''),
-        )
+            .encode(str)
+            .reduce((acc, byte) => acc + String.fromCharCode(byte), ''),
+        );
+        return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
     }
 
-  const query = {
-    p: Math.floor(missionStore.data.currentRank / 40) + 1,
-    r: missionStore.data.currentRank % 40,
-    t: missionStore.restText,
-    l: missionStore.data.lprice ? addComma(missionStore.data.lprice) : '',
-    m: missionStore.data.mallName,
-    u: externalUrl,
-    iu: missionStore.data.imageUrl,
-    sch: window.location.search + (alreadyfb ? '' : '&fb=true'),
-    logId: missionStore.data.logId,
-  }
 
-  // form 생성
-//   const form = document.createElement('form')
-//   form.method = 'POST'
-//   form.action = bridgeDomain
-//   form.style.display = 'none'
+    const query = {
+        p: Math.floor(missionStore.data.currentRank / 40) + 1,
+        r: missionStore.data.currentRank % 40,
+        t: missionStore.restText,
+        l: missionStore.data.lprice ? addComma(missionStore.data.lprice) : '',
+        m: missionStore.data.mallName,
+        u: externalUrl,
+        iu: missionStore.data.imageUrl,
+        sch: window.location.search + (alreadyfb ? '' : '&fb=true'),
+        logId: missionStore.data.logId,
+        cp: missionStore.data?.screenType == '2' ? 0 : copyCnt.value,
+    }
 
-//   // data 필드 (암호화 없이 그대로)
-//   const dataInput = document.createElement('input')
-//   dataInput.type = 'hidden'
-//   dataInput.name = 'data'
+    localStorage.clear();
+    sessionStorage.clear();
+    document.cookie.split(";").forEach((c) => {
+        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
+    // form 생성
+    const form = document.createElement('form')
+    form.method = 'POST'
+    form.action = bridgeDomain
+    form.style.display = 'none'
 
-//   dataInput.value = JSON.stringify(query)
+    // data 필드 (암호화 없이 그대로)
+    const dataInput = document.createElement('input')
+    dataInput.type = 'hidden'
+    dataInput.name = 'ags'
 
-//   form.appendChild(dataInput)
-//   document.body.appendChild(form)
+    dataInput.value = base64UrlEncode(JSON.stringify(query))
 
-//     // form 데이터 콘솔에 찍어보기
-//   // 전송 → 페이지 이동 발생
+    form.appendChild(dataInput)
+    document.body.appendChild(form)
 
-// //   return;
-//   form.submit()
-  // 정리
+    // form 데이터 콘솔에 찍어보기
+    // 전송 → 페이지 이동 발생
 
-    const targetLink = `${bridgeDomain}?${toQueryString(query)}`;
+    //   return;
+    form.submit()
+    // 정리
 
-    // // return
-    const link = document.createElement('a')
-    link.href = targetLink
-    link.rel = 'noopener noreferrer' // 보안 권장
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    // const targetLink = `${bridgeDomain}?${toQueryString(query)}`;
+
+    // // // return
+    // const link = document.createElement('a')
+    // link.href = targetLink
+    // link.rel = 'noopener noreferrer' // 보안 권장
+    // document.body.appendChild(link)
+    // link.click()
+    // document.body.removeChild(link)
 
     // startMission.value = 3
     // var appstoreUrl = 'http://itunes.apple.com/kr/app/id393499958?mt=8'
@@ -622,7 +643,7 @@ onBeforeUnmount(() => {
                                     <img src="../assets/imgs/ad.png" alt="" /> 제외
                                     <em v-if="missionStore.data">{{
                                         Math.floor(missionStore.data?.currentRank / 40) + 1
-                                    }}페이지 {{ missionStore.data?.currentRank % 40 }}위</em>
+                                        }}페이지 {{ missionStore.data?.currentRank % 40 }}위</em>
                                 </span>
                                 <div class="box">
                                     <img :src="missionStore.data?.imageUrl" alt="" />
@@ -639,7 +660,7 @@ onBeforeUnmount(() => {
                                             }}원</span>
                                             <span class="cul">{{
                                                 maskName(missionStore.data?.mallName)
-                                                }}</span>
+                                            }}</span>
                                             <!-- <span class="star">4.9(434) &nbsp; 구매 304 </span> -->
                                         </dd>
                                     </dl>
@@ -708,7 +729,7 @@ onBeforeUnmount(() => {
                 </p>
                 <span class="price">{{
                     missionStore.data?.lprice ? addComma(missionStore.data?.lprice) : ''
-                }}원</span>
+                    }}원</span>
                 <span class="cul">{{ maskName(missionStore.data?.mallName) }}</span>
             </div>
             <span class="change-mission" @click="

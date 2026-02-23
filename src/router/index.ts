@@ -3,6 +3,7 @@ import HowTo from '@/views/HowTo.vue'
 import Main from '@/views/Main.vue'
 import Success from '@/views/Success.vue'
 import Fail from '@/views/Fail.vue'
+import Test from '@/views/Test.vue'
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     scrollBehavior() {
@@ -33,6 +34,11 @@ const router = createRouter({
             path: '/fail',
             name: 'fail',
             component: Fail,
+        },
+        {
+            path: '/test',
+            name: 'test',
+            component: Test,
         },
     ],
 })

@@ -41,16 +41,23 @@ function openNaverAppForApple() {
   const bridgeDomain = missionStore.data.bridgeDomain
   const externalUrl = missionStore.data.extenalUrl
 
+    localStorage.clear();
+    sessionStorage.clear();
+    document.cookie.split(";").forEach((c) => {
+        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
+
   // 이미 브릿지에서 온 페이지인가
   const alreadyfb = !!route.query.fb
-  const alreadyLogId = !!route.query.logId
-  function base64Encode(str: string) {
-        return btoa(
-            new TextEncoder()
-                .encode(str)
-                .reduce((acc, byte) => acc + String.fromCharCode(byte), ''),
-        )
-    }
+ function base64UrlEncode(str: string) {
+  const b64 = btoa(
+    new TextEncoder()
+      .encode(str)
+      .reduce((acc, byte) => acc + String.fromCharCode(byte), ''),
+  );
+  return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+}
+
 
   const query = {
     p: Math.floor(missionStore.data.currentRank / 40) + 1,
@@ -65,53 +72,29 @@ function openNaverAppForApple() {
   }
 
   // form 생성
-//   const form = document.createElement('form')
-//   form.method = 'POST'
-//   form.action = bridgeDomain
-//   form.style.display = 'none'
+  const form = document.createElement('form')
+  form.method = 'POST'
+  form.action = bridgeDomain
+  form.style.display = 'none'
 
-//   // data 필드 (암호화 없이 그대로)
-//   const dataInput = document.createElement('input')
-//   dataInput.type = 'hidden'
-//   dataInput.name = 'data'
+  // data 필드 (암호화 없이 그대로)
+  const dataInput = document.createElement('input')
+  dataInput.type = 'hidden'
+  dataInput.name = 'ags'
 
-//   dataInput.value = JSON.stringify(query)
+  dataInput.value = base64UrlEncode(JSON.stringify(query))
 
-//   form.appendChild(dataInput)
-//   document.body.appendChild(form)
+  form.appendChild(dataInput)
+  document.body.appendChild(form)
 
-//     // form 데이터 콘솔에 찍어보기
-//   // 전송 → 페이지 이동 발생
+    // form 데이터 콘솔에 찍어보기
+  // 전송 → 페이지 이동 발생
 
-// //   return;
-//   form.submit()
+//   return;
+  form.submit()
   // 정리
 
-    const targetLink = `${bridgeDomain}?${toQueryString(query)}`;
-
-    // // return
-    const link = document.createElement('a')
-    link.href = targetLink
-    link.rel = 'noopener noreferrer' // 보안 권장
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-
-    // startMission.value = 3
-    // var appstoreUrl = 'http://itunes.apple.com/kr/app/id393499958?mt=8'
-    // const now = Date.now()
-    // // 2️⃣ 앱이 안 열리면 fallback (앱 미설치)
-    // setTimeout(() => {
-    //     if (Date.now() - now < 2500) {
-    //         // 앱이 실행되지 않았다고 판단되면
-    //         const goToStore = window.confirm(
-    //             '네이버 앱이 설치되어 있지 않습니다.\n설치 페이지로 이동하시겠습니까?',
-    //         )
-    //         if (goToStore) {
-    //             window.location.href = appstoreUrl
-    //         }
-    //     }
-    // }, 2000)
+    
 }
 const prevSlide = () => {
     if (step.value === 1) {

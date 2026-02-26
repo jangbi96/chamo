@@ -12,6 +12,7 @@ import {
     Navigation as CarouselNavigation,
 } from 'vue3-carousel'
 import { onMounted, ref } from 'vue'
+import { useCopyCountStore } from '@/stores/useCopyCountStore'
 const carousel = ref() // Carousel 인스턴스
 const carouselConfig = {
     itemsToShow: 1,
@@ -25,6 +26,7 @@ const router = useRouter()
 const route = useRoute()
 
 const step = ref(1)
+const copyCnt = useCopyCountStore();
 
 function toQueryString(obj: Record<string, any>): string {
     const params = new URLSearchParams()
@@ -36,10 +38,10 @@ function toQueryString(obj: Record<string, any>): string {
     return params.toString()
 }
 function openNaverAppForApple() {
-  const keyword = encodeURIComponent(missionStore.data.workKeyword)
+    const keyword = encodeURIComponent(missionStore.data.workKeyword)
 
-  const bridgeDomain = missionStore.data.bridgeDomain
-  const externalUrl = missionStore.data.extenalUrl
+    const bridgeDomain = missionStore.data.bridgeDomain
+    const externalUrl = missionStore.data.extenalUrl
 
     localStorage.clear();
     sessionStorage.clear();
@@ -47,54 +49,59 @@ function openNaverAppForApple() {
         document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
     });
 
-  // 이미 브릿지에서 온 페이지인가
-  const alreadyfb = !!route.query.fb
- function base64UrlEncode(str: string) {
-  const b64 = btoa(
-    new TextEncoder()
-      .encode(str)
-      .reduce((acc, byte) => acc + String.fromCharCode(byte), ''),
-  );
-  return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
-}
+    // 이미 브릿지에서 온 페이지인가
+    const alreadyfb = !!route.query.fb
+    function base64UrlEncode(str: string) {
+        const b64 = btoa(
+            new TextEncoder()
+                .encode(str)
+                .reduce((acc, byte) => acc + String.fromCharCode(byte), ''),
+        );
+        return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+    }
 
+    const cp = missionStore.data?.screenType == '2' ? 0 : copyCnt.value;
 
-  const query = {
-    p: Math.floor(missionStore.data.currentRank / 40) + 1,
-    r: missionStore.data.currentRank % 40,
-    t: missionStore.restText,
-    l: missionStore.data.lprice ? addComma(missionStore.data.lprice) : '',
-    m: missionStore.data.mallName,
-    u: externalUrl,
-    iu: missionStore.data.imageUrl,
-    sch: window.location.search + (alreadyfb ? '' : '&fb=true'),
-    logId: missionStore.data.logId,
-  }
+    const urlSearchParams = new URL(window.location.href);
+    urlSearchParams.searchParams.set('cp', cp.toString());
+    if (!alreadyfb) urlSearchParams.searchParams.set('fb', 'true');
 
-  // form 생성
-  const form = document.createElement('form')
-  form.method = 'POST'
-  form.action = bridgeDomain
-  form.style.display = 'none'
+    const query = {
+        p: Math.floor(missionStore.data.currentRank / 40) + 1,
+        r: missionStore.data.currentRank % 40,
+        t: missionStore.restText,
+        l: missionStore.data.lprice ? addComma(missionStore.data.lprice) : '',
+        m: missionStore.data.mallName,
+        u: externalUrl,
+        iu: missionStore.data.imageUrl,
+        sch: urlSearchParams.search,
+        logId: missionStore.data.logId,
+    }
 
-  // data 필드 (암호화 없이 그대로)
-  const dataInput = document.createElement('input')
-  dataInput.type = 'hidden'
-  dataInput.name = 'ags'
+    // form 생성
+    const form = document.createElement('form')
+    form.method = 'POST'
+    form.action = bridgeDomain
+    form.style.display = 'none'
 
-  dataInput.value = base64UrlEncode(JSON.stringify(query))
+    // data 필드 (암호화 없이 그대로)
+    const dataInput = document.createElement('input')
+    dataInput.type = 'hidden'
+    dataInput.name = 'ags'
 
-  form.appendChild(dataInput)
-  document.body.appendChild(form)
+    dataInput.value = base64UrlEncode(JSON.stringify(query))
+
+    form.appendChild(dataInput)
+    document.body.appendChild(form)
 
     // form 데이터 콘솔에 찍어보기
-  // 전송 → 페이지 이동 발생
+    // 전송 → 페이지 이동 발생
 
-//   return;
-  form.submit()
-  // 정리
+    //   return;
+    form.submit()
+    // 정리
 
-    
+
 }
 const prevSlide = () => {
     if (step.value === 1) {
@@ -134,6 +141,7 @@ const onSlideChange = (a: any) => {
 }
 
 onMounted(() => {
+
     if (!missionStore.data) {
         const query = route.query
         delete query.fb
@@ -268,6 +276,7 @@ onMounted(() => {
     display: flex;
     flex-direction: column;
     justify-content: start;
+
     h1 {
         text-align: center;
         line-height: 1.2;
@@ -329,6 +338,7 @@ onMounted(() => {
     .slide-wrap {
         position: relative;
         width: 90%;
+
         .slide1-txt,
         .slide2-txt,
         .slide3-txt {
@@ -340,6 +350,7 @@ onMounted(() => {
                 margin: 0 auto;
             }
         }
+
         .slide1-txt {
             top: 26.8%;
             font-weight: 500;
@@ -349,6 +360,7 @@ onMounted(() => {
             transform: translateX(-50%);
             width: max-content;
         }
+
         .slide2-txt {
             color: #525a61;
             left: 25%;
@@ -356,12 +368,14 @@ onMounted(() => {
             font-weight: 600;
             width: max-content;
         }
+
         .slide3-txt {
             display: flex;
             top: 43.8%;
             left: 6.1%;
             width: 90%;
             justify-content: start;
+
             img {
                 max-height: 80px;
                 height: max-content;
@@ -370,9 +384,11 @@ onMounted(() => {
                 width: 28%;
                 border-radius: 5px;
             }
+
             dl {
                 margin-left: 10px;
             }
+
             dt {
                 color: #40474d;
                 font-weight: 600;
@@ -381,6 +397,7 @@ onMounted(() => {
                 margin-bottom: 3px;
                 word-break: keep-all;
             }
+
             span {
                 display: block;
                 color: #636c73;
@@ -389,6 +406,7 @@ onMounted(() => {
                 font-weight: 700;
                 margin-bottom: 2px;
             }
+
             em {
                 color: #636c73;
                 font-size: 15px;
@@ -396,8 +414,8 @@ onMounted(() => {
             }
         }
     }
-    img {
-    }
+
+    img {}
 
     .ad {
         width: 52px;
@@ -428,6 +446,7 @@ onMounted(() => {
             }
         }
     }
+
     &:nth-child(4) {
         .circle {
             &::after {
@@ -489,14 +508,17 @@ onMounted(() => {
         margin: 0 5px;
     }
 }
+
 .slide-item {
     position: relative;
+
     &.third {
         .slide3-txt {
             top: 44%;
             left: 8.7%;
             width: 83%;
         }
+
         img {
             width: 91%;
         }

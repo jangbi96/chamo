@@ -23,17 +23,15 @@ function toQueryString(obj: Record<string, any>): string {
     }
     return params.toString()
 }
-async function getData(logId?: string) {
+async function getData() {
     const queryParams = route.query
 
-    console.log('queryParams', queryParams)
     try {
         const params = {
-            ifa: route.query.ifa,
-            userId: route.query.user_id,
-            bzTrackingId: route.query.bz_tracking_id,
-            ...(logId ? { logId, slotId: missionStore.data?.slotId } : {}),
+            logId : route.query.logId,
+            changeYn : 'N'
         }
+
 
         const res: any = await axios.get(
             `https://admin.lightning.ai.kr/api/mission/info?${toQueryString(params)}`,

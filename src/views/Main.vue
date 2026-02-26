@@ -6,6 +6,8 @@ import axios from 'axios'
 import { useIdleTimerStore } from '../stores/timer'
 import { useMissionStore } from '../stores/useMissionStore'
 import { useShowvideoStore } from '../stores/useShowvideoStore'
+import { useCopyCountStore } from '@/stores/useCopyCountStore'
+import { getCookie} from '../cookie'
 const videoUrls = [
     'https://img.lightning.ai.kr/introduction1_t1.mp4',
     'https://img.lightning.ai.kr/introduction2_t1.mp4',
@@ -17,6 +19,7 @@ const videoUrls2 = [
     'https://img.lightning.ai.kr/introduction3_t2.mp4',
 ]
 const missionStore = useMissionStore()
+const copyCnt = useCopyCountStore();
 const idleTimer = useIdleTimerStore()
 const videoTrigger = ref<number | null>(null)
 const router = useRouter()
@@ -47,12 +50,12 @@ const urlByScreenType = ref({
 const inputValue = ref('')
 const submittedAnswer = ref<string[]>([])
 const wrong = ref(false)
-const inputCount = ref(0)
+const inputCount = ref(1)
 const test = ref(false)
 const domref = ref<HTMLElement | null>(null)
 
 const data = ref<any>(null)
-
+const isLocked = ref(false);
 // --- 기존 코드 내에 추가 ---
 const videoRefs = ref<HTMLVideoElement[]>([])
 const canClickNext = ref(false) // 현재 영상이 끝났을 때만 true
@@ -63,7 +66,7 @@ const showSkipButton = ref(false)
 const skipTimer = ref<number | null>(null)
 
 /* 키워드복사횟수, 정답입력횟수, 정답체크 진행 */
-const copyCnt = ref(0)
+// const copyCnt = ref(0)
 
 function toQueryString(obj: Record<string, any>): string {
     const params = new URLSearchParams()
@@ -115,7 +118,6 @@ async function showMessage(keyword: string) {
 
 const triggerError = () => {
     wrong.value = true
-    inputCount.value += 1
     // submittedAnswer 가 10개를 초과한경우, 0번째를 제거. 항상 최신 10개까지만 저장
     if (submittedAnswer.value.length > 10) {
         submittedAnswer.value.shift()
@@ -141,26 +143,31 @@ function addComma(num: string | number) {
  * 연결 끝의 기준-> 10분, 창 종료
  */
 async function record(state: 'submited' | 'end') {
-    const input = inputValue.value.replace(/\s+/g, '').toLowerCase()
-    const correctCondition = missionStore.data?.hashtag?.toLowerCase().includes(input)
+    if (isLocked.value) return
 
-    if (inputValue.value.length === 1 || !inputValue.value || !correctCondition) {
-        triggerError()
-        return
-    }
+    isLocked.value = true
+    const input = inputValue.value.replace(/\s+/g, '').toLowerCase()
+    // const correctCondition = missionStore.data?.hashtag?.toLowerCase().includes(input)
 
     try {
+        if (inputValue.value.length === 1 || !inputValue.value || inputValue.value.length > 10) {
+            triggerError()
+            return
+        }
+
         const params = {
+            // logId: '8281f10b-0dd2-4c09-bea5-c09a481117be',
             logId: missionStore.data?.logId,
-            // logId: 'errorTest',
             logicType: missionStore.data?.logicType,
             middleType: missionStore.data?.middleType,
-            userId: route.query.user_id,
-            ifa: route.query.ifa,
             copyCount: copyCnt.value,
-            bzTrackingId: route.query.bz_tracking_id,
+            submittedAnswer: inputValue.value, // 정답칸에 입력한 텍스트
             inputCount: inputCount.value, // 오답시도횟수
-            submittedAnswer: submittedAnswer.value.join(','), // 오답 입력값 콤마로 join
+
+            // submittedAnswer: submittedAnswer.value.join(','), // 오답 입력값 콤마로 join
+            // userId: route.query.user_id,
+            // bzTrackingId: route.query.bz_tracking_id,
+            // ifa: route.query.ifa,
         }
 
         // console.log(params)
@@ -185,22 +192,30 @@ async function record(state: 'submited' | 'end') {
             )
         }
     } catch (error: any) {
-        if (error.response.status === 409) {
+
+        console.log('error', error)
+        if (error.response.status === 404) {
             window.alert('유효하지 않은 미션입니다.')
         }
+        if (error.response.status === 500) {
+            // inputCount.value += 1
+            triggerError();
+        }
+    } finally {
+        setTimeout(() => {
+            isLocked.value = false
+        }, 2000)
     }
 }
 
 // 그냥 미션상품 변경하기
-async function getData(logId?: string, fb = false) {
+async function getData(logId?: string, fb = false, changeYn ?: string) {
     const queryParams = route.query
 
     try {
         const params = {
-            userId: route.query.user_id,
-            bzTrackingId: route.query.bz_tracking_id,
-            ifa: route.query.ifa,
-            ...(logId ? { logId, slotId: missionStore.data?.slotId } : {}),
+            logId,
+            changeYn
         }
 
         const res: any = await axios.get(
@@ -216,26 +231,30 @@ async function getData(logId?: string, fb = false) {
 
         if (fb) {
 
-            const { fb, ...rest } = route.query
+            const { fb, logId, ...rest } = route.query
 
-            copyCnt.value = Number(route.query.cp) || 0
             router.replace({
                 query: rest,
             });
 
             if (route.query.howto) {
-                router.push({ path: '/howto', query: { ...route.query } })
-            } else if (!route.query.logId) {
+                router.push({ path: '/howto', query: { ...route.query } });
+                return;
+            } else if (route.query.logId && route.query.changeYn === 'N') {
                 startMission.value = 3
             }
-        }
 
-        if (route.query.logId) {
-            const { logId, ...rest } = route.query
             router.replace({
                 query: rest,
-            })
+            });
         }
+        // if (route.query.logId) {
+        //     const { logId, ...rest } = route.query
+        //     router.replace({
+        //         query: rest,
+        //     })
+        // }
+
     } catch (error) {
         router.push({ path: '/fail', query: queryParams })
 
@@ -311,34 +330,29 @@ const openNaverAppForAndroid = () => {
 const agent = ref('android')
 
 function openNaverAppForApple() {
-    const keyword = encodeURIComponent(missionStore.data.workKeyword)
 
     const bridgeDomain = missionStore.data.bridgeDomain
     //   const bridgeDomain = "https://bridge-cleaner.chamominedev.workers.dev/"
-    //   const bridgeDomain = "https://starber.co.kr/"
+    // const bridgeDomain = "https://starber.co.kr/"
     const externalUrl = missionStore.data.extenalUrl
 
     // 이미 브릿지에서 온 페이지인가
     const alreadyfb = !!route.query.fb
-    // function base64Encode(str: string) {
-    //     return btoa(
-    //         new TextEncoder()
-    //             .encode(str)
-    //             .reduce((acc, byte) => acc + String.fromCharCode(byte), ''),
-    //     )
-    // }
 
 
     function base64UrlEncode(str: string) {
-
         const b64 = btoa(
             new TextEncoder()
-            .encode(str)
-            .reduce((acc, byte) => acc + String.fromCharCode(byte), ''),
+                .encode(str)
+                .reduce((acc, byte) => acc + String.fromCharCode(byte), ''),
         );
         return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
     }
+    const cp = missionStore.data?.screenType == '2' ? 0 : copyCnt.value;
 
+    const urlSearchParams = new URL(window.location.href);
+    urlSearchParams.searchParams.set('cp', cp.toString());
+    if (!alreadyfb) urlSearchParams.searchParams.set('fb', 'true');
 
     const query = {
         p: Math.floor(missionStore.data.currentRank / 40) + 1,
@@ -348,9 +362,8 @@ function openNaverAppForApple() {
         m: missionStore.data.mallName,
         u: externalUrl,
         iu: missionStore.data.imageUrl,
-        sch: window.location.search + (alreadyfb ? '' : '&fb=true'),
+        sch: urlSearchParams.search,
         logId: missionStore.data.logId,
-        cp: missionStore.data?.screenType == '2' ? 0 : copyCnt.value,
     }
 
     localStorage.clear();
@@ -550,17 +563,60 @@ watch(videoTrigger, async (idx) => {
         showSkipButton.value = false
     }
 })
+function safeBase64Decode(b64url: string) {
+  try {
+    const b64 = b64url
+      .replace(/-/g, '+')
+      .replace(/_/g, '/')
+      .padEnd(Math.ceil(b64url.length / 4) * 4, '=');
 
-onMounted(() => {
-    idleTimer.start(() => record('end'))
-
-    if (!missionStore.data) {
-        if (route.query.fb == 'true' || route.query.logId) {
-            getData(route.query.logId as string, true)
-            return
-        }
-        getData()
+    const binaryString = atob(b64);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
     }
+    return new TextDecoder('utf-8').decode(bytes);
+  } catch (e) {
+    console.error('디코딩 에러:', e);
+    return null;
+  }
+}
+onMounted(() => {
+
+    idleTimer.start(() => record('end'))
+    const payload = getCookie('ps_info');
+
+    if (route.query.cp) {
+        copyCnt.setValue(Number(route.query.cp) || 0)
+    }
+    
+    if (!missionStore.data) {
+        // 브릿지에서 넘어왔을때
+        if (route.query.fb == 'true' || route.query.logId) {
+            getData(route.query.logId as string, true, route.query.changeYn as string)
+            return
+        } else {
+            if (payload) {
+
+                // 2. Base64 디코딩 및 한글 깨짐 방지 처리
+                const infoData = JSON.parse(safeBase64Decode(payload) as string);
+                missionStore.setData(infoData)
+             
+                // console.log("✅ 까서 나온 데이터:", infoData);
+            } else {
+                // 쿠키가 없을때
+                window.alert('유효하지 않은 미션입니다.')
+
+                router.push({ path: '/fail' })
+
+            }
+        }
+
+        // 페이지 최초 진입시, 쿠키에서 데이터 가져옴 
+
+        // missionStore.setData(payload);
+    }
+
 
     if (route.query.mission == 'true') {
         if (route.query?.screenType == '2') {
@@ -574,18 +630,18 @@ onMounted(() => {
         videoTrigger.value = 0
     }
 
-    const userAgent = navigator.userAgent.toLowerCase() //userAgent 문자열 값 받아오기
+    // const userAgent = navigator.userAgent.toLowerCase() //userAgent 문자열 값 받아오기
 
-    if (userAgent.indexOf('android') > -1) {
-        //안드로이드일 때 실행할 x동작
-        agent.value = 'android'
-    } else if (
-        userAgent.indexOf('iphone') > -1 ||
-        userAgent.indexOf('ipad') > -1 ||
-        userAgent.indexOf('ipod') > -1
-    ) {
-        agent.value = 'apple'
-    }
+    // if (userAgent.indexOf('android') > -1) {
+    //     //안드로이드일 때 실행할 x동작
+    //     agent.value = 'android'
+    // } else if (
+    //     userAgent.indexOf('iphone') > -1 ||
+    //     userAgent.indexOf('ipad') > -1 ||
+    //     userAgent.indexOf('ipod') > -1
+    // ) {
+    //     agent.value = 'apple'
+    // }
 })
 
 onBeforeUnmount(() => {
@@ -735,7 +791,7 @@ onBeforeUnmount(() => {
             <span class="change-mission" @click="
                 () => {
                     startMission = 0
-                    getData(missionStore.data?.logId)
+                    getData(missionStore.data?.logId, false, 'Y')
                 }
             ">미션 상품을 변경하기
                 <img src="../assets/imgs/arrow-go.png" alt="" />
@@ -774,7 +830,7 @@ onBeforeUnmount(() => {
         <a class="nextbtn" v-if="startMission === 2 && agent === 'android'" href="naversearchapp://default?version=1">
             미션 시작하기
         </a> -->
-        <button class="nextbtn" @click="() => record('submited')" v-else-if="startMission == 3">
+        <button :disabled="isLocked" class="nextbtn" @click="() => record('submited')" v-else-if="startMission == 3">
             정답 제출
         </button>
     </div>
@@ -940,6 +996,11 @@ onBeforeUnmount(() => {
         line-height: normal;
         background: #03cc64;
         color: #fff;
+
+        &:disabled {
+            background: #eee;
+            color: #757575
+        }
     }
 
     .gray {
@@ -1081,7 +1142,10 @@ onBeforeUnmount(() => {
                 font-size: 20px;
                 top: 50%;
                 font-weight: 600;
-                width: max-content;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 74%;
             }
         }
 

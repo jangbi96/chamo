@@ -2,11 +2,16 @@
 import { RouterLink } from 'vue-router'
 import { useRoute } from 'vue-router'
 import 'vue3-carousel/carousel.css'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { clearAllCookies } from '../cookie'
 
 const close = () => {
     window.close()
 }
+
+onMounted(() => {
+    clearAllCookies();
+})
 </script>
 
 <template>

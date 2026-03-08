@@ -4,15 +4,14 @@ import { useRoute } from 'vue-router'
 import 'vue3-carousel/carousel.css'
 import { useMissionStore } from '../stores/useMissionStore'
 import { useShowvideoStore } from '../stores/useShowvideoStore'
-
 import {
     Carousel,
     Slide,
-    Pagination as CarouselPagination,
-    Navigation as CarouselNavigation,
 } from 'vue3-carousel'
 import { onMounted, ref } from 'vue'
 import { useCopyCountStore } from '@/stores/useCopyCountStore'
+import { clearAllCookies } from '@/cookie'
+import { base64UrlEncode } from '@/util'
 const carousel = ref() // Carousel 인스턴스
 const carouselConfig = {
     itemsToShow: 1,
@@ -28,16 +27,8 @@ const route = useRoute()
 const step = ref(1)
 const copyCnt = useCopyCountStore();
 
-function toQueryString(obj: Record<string, any>): string {
-    const params = new URLSearchParams()
-    for (const key in obj) {
-        if (obj[key] !== undefined && obj[key] !== null) {
-            params.append(key, String(obj[key]))
-        }
-    }
-    return params.toString()
-}
-function openNaverAppForApple() {
+
+function openBridgePage() {
     const keyword = encodeURIComponent(missionStore.data.workKeyword)
 
     const bridgeDomain = missionStore.data.bridgeDomain
@@ -45,25 +36,16 @@ function openNaverAppForApple() {
 
     localStorage.clear();
     sessionStorage.clear();
-    document.cookie.split(";").forEach((c) => {
-        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-    });
+    clearAllCookies();
 
     // 이미 브릿지에서 온 페이지인가
     const alreadyfb = !!route.query.fb
-    function base64UrlEncode(str: string) {
-        const b64 = btoa(
-            new TextEncoder()
-                .encode(str)
-                .reduce((acc, byte) => acc + String.fromCharCode(byte), ''),
-        );
-        return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
-    }
 
     const cp = missionStore.data?.screenType == '2' ? 0 : copyCnt.value;
 
     const urlSearchParams = new URL(window.location.href);
     urlSearchParams.searchParams.set('cp', cp.toString());
+    
     if (!alreadyfb) urlSearchParams.searchParams.set('fb', 'true');
 
     const query = {
@@ -113,7 +95,7 @@ const prevSlide = () => {
 const nextSlide = () => {
     if (step.value === 5) {
         if (missionStore.data?.screenType === '2') {
-            openNaverAppForApple()
+            openBridgePage()
         } else {
             router.push({
                 path: '/',

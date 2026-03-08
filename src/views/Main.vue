@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import 'vue3-carousel/carousel.css'
@@ -7,17 +7,9 @@ import { useIdleTimerStore } from '../stores/timer'
 import { useMissionStore } from '../stores/useMissionStore'
 import { useShowvideoStore } from '../stores/useShowvideoStore'
 import { useCopyCountStore } from '@/stores/useCopyCountStore'
-import { getCookie} from '../cookie'
-const videoUrls = [
-    'https://img.lightning.ai.kr/introduction1_t1.mp4',
-    'https://img.lightning.ai.kr/introduction2_t1.mp4',
-    'https://img.lightning.ai.kr/introduction3_t1.mp4',
-]
-const videoUrls2 = [
-    'https://img.lightning.ai.kr/introduction1_t2.mp4',
-    'https://img.lightning.ai.kr/introduction2_t2.mp4',
-    'https://img.lightning.ai.kr/introduction3_t2.mp4',
-]
+import { getCookie, setCookie,clearAllCookies} from '../cookie'
+import { base64UrlEncode, addComma, toQueryString, safeBase64Encode, safeBase64Decode } from '@/util'
+
 const missionStore = useMissionStore()
 const copyCnt = useCopyCountStore();
 const idleTimer = useIdleTimerStore()
@@ -32,32 +24,18 @@ const isCopy = ref(false)
 
 const startMission = ref(0)
 
-const urlByScreenType = ref({
-    '1': 'https://www.google.com/search?q=%EB%84%A4%EC%9D%B4%EB%B2%84&sca_esv=73e86a78892c9231&source=hp&ei=SNU4ae-7NtWeseMPr-eE8A0&oq=%EB%84%A4%EC%9D%B4%EB%B2%84&gs_lp=EhFtb2JpbGUtZ3dzLXdpei1ocCIJ64Sk7J2067KEMgIQKTIREC4YgAQYsQMY0QMYgwEYxwEyCxAAGIAEGLEDGIMBMgsQABiABBixAxiDATILEAAYgAQYsQMYgwEyCxAAGIAEGLEDGIMBMgsQABiABBixAxiDATILEAAYgAQYsQMYgwEyCxAAGIAEGLEDGIMBSOcTUNcGWMQScAZ4AJABBpgBkQGgAbAKqgEEMS4xMLgBA8gBAPgBAZgCC6AC2wSoAgLCAgsQLhiABBjRAxjHAcICCxAuGIAEGLEDGIMBwgIIEAAYgAQYsQPCAgQQABgDwgIFEAAYgATCAgoQABiABBhDGIoFwgIQEC4YgAQY0QMYQxjHARiKBcICERApGIAEGLEDGNEDGIMBGMcBmAN78QWvsvn3yiS0nJIHAzcuNKAHqUCyBwMxLjS4B70EwgcFMC4zLjjIBzCACAA&sclient=mobile-gws-wiz-hp',
-    '2': 'https://news.naver.com/',
-    '3': 'https://m.cafe.naver.com/',
-    '4': 'https://m.mail.naver.com/',
-    '5': 'https://weather.naver.com/',
-    '6': 'https://m.search.naver.com/search.naver?query=%EC%B7%A8%EC%97%85%EC%A0%95%EB%B3%B4',
-    '7': 'https://m.search.naver.com/search.naver?query=%EC%98%A4%EB%8A%98+%EB%82%A0%EC%94%A8',
-    '8': 'https://m.search.naver.com/search.naver?query=%EC%86%90%ED%9D%A5%EB%AF%BC',
-    '9': 'https://m.search.naver.com/search.naver?query=%EC%9D%B4%EC%9E%AC%EB%AA%85+%EC%A7%80%EC%A7%80%EC%9C%A8',
-    '10': 'https://m.search.naver.com/search.naver?query=%ED%95%9C%ED%8C%8C+%EB%8C%80%EB%B9%84+%EB%B0%A9%EB%B2%95',
-    '11': 'https://m.search.naver.com/search.naver?sm=mtp_hty.top&where=m&query=%EB%AF%B8%EC%84%B8%EB%A8%BC%EC%A7%80+%EC%88%98%EC%B9%98',
-    '12': 'https://m.search.naver.com/search.naver?sm=mtp_hty.top&where=m&query=%ED%95%9C%ED%8C%8C+%EC%A3%BC%EC%9D%98%EB%B3%B4',
-})
-
 const inputValue = ref('')
 const submittedAnswer = ref<string[]>([])
 const wrong = ref(false)
 const inputCount = ref(1)
-const test = ref(false)
 const domref = ref<HTMLElement | null>(null)
 
-const data = ref<any>(null)
+// 정답 연속 제출 막는 용
 const isLocked = ref(false);
+
 // --- 기존 코드 내에 추가 ---
 const videoRefs = ref<HTMLVideoElement[]>([])
+
 const canClickNext = ref(false) // 현재 영상이 끝났을 때만 true
 const viewVideo = useShowvideoStore()
 
@@ -68,15 +46,8 @@ const skipTimer = ref<number | null>(null)
 /* 키워드복사횟수, 정답입력횟수, 정답체크 진행 */
 // const copyCnt = ref(0)
 
-function toQueryString(obj: Record<string, any>): string {
-    const params = new URLSearchParams()
-    for (const key in obj) {
-        if (obj[key] !== undefined && obj[key] !== null) {
-            params.append(key, String(obj[key]))
-        }
-    }
-    return params.toString()
-}
+
+// 검색어 복사 완료 
 async function showMessage(keyword: string) {
     try {
         // 최신 브라우저에서 HTTPS 환경이면 navigator.clipboard 사용
@@ -109,13 +80,12 @@ async function showMessage(keyword: string) {
 
     setTimeout(() => {
         isCopy.value = false
-        openNaverAppForApple()
+        openBridgePage()
     }, 1000)
-    // setTimeout(() => {
-    //     startMission.value = 1
-    // }, 2000)
+  
 }
 
+// 정답 틀렸을때 에러 ui
 const triggerError = () => {
     wrong.value = true
     // submittedAnswer 가 10개를 초과한경우, 0번째를 제거. 항상 최신 10개까지만 저장
@@ -129,14 +99,11 @@ const triggerError = () => {
 
     setTimeout(() => {
         wrong.value = false
-        test.value = true
         domref.value?.focus()
     }, 500)
 }
 
-function addComma(num: string | number) {
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') ?? ''
-}
+
 
 /*
  * 10분 카운트긴 한데 날짜가 봐뀌면 연결 끝
@@ -146,9 +113,10 @@ async function record(state: 'submited' | 'end') {
     if (isLocked.value) return
 
     isLocked.value = true
-    const input = inputValue.value.replace(/\s+/g, '').toLowerCase()
+    // const input = inputValue.value.replace(/\s+/g, '').toLowerCase()
     // const correctCondition = missionStore.data?.hashtag?.toLowerCase().includes(input)
 
+    // 백에서 정답 체크 
     try {
         if (inputValue.value.length === 1 || !inputValue.value || inputValue.value.length > 10) {
             triggerError()
@@ -156,7 +124,6 @@ async function record(state: 'submited' | 'end') {
         }
 
         const params = {
-            // logId: '8281f10b-0dd2-4c09-bea5-c09a481117be',
             logId: missionStore.data?.logId,
             logicType: missionStore.data?.logicType,
             middleType: missionStore.data?.middleType,
@@ -170,10 +137,7 @@ async function record(state: 'submited' | 'end') {
             // ifa: route.query.ifa,
         }
 
-        // console.log(params)
-        // return
 
-        // return
         // 정답일경우
         if (state === 'submited') {
             const res1 = await axios.post(
@@ -193,12 +157,11 @@ async function record(state: 'submited' | 'end') {
         }
     } catch (error: any) {
 
-        console.log('error', error)
         if (error.response.status === 404) {
             window.alert('유효하지 않은 미션입니다.')
         }
+        // 정답 틀린경우
         if (error.response.status === 500) {
-            // inputCount.value += 1
             triggerError();
         }
     } finally {
@@ -208,9 +171,9 @@ async function record(state: 'submited' | 'end') {
     }
 }
 
-// 그냥 미션상품 변경하기
-async function getData(logId?: string, fb = false, changeYn ?: string) {
-    const queryParams = route.query
+// 미션상품 변경하기
+async function getData(logId: string, fb = false, changeYn ?: string) {
+    const queryParams = route.query;
 
     try {
         const params = {
@@ -225,14 +188,25 @@ async function getData(logId?: string, fb = false, changeYn ?: string) {
         // store에 데이터 저장
         missionStore.setData(res.data)
 
-        // if (missionStore.data?.videoList[0].skipTime > 0) {
-        // }
+        if(changeYn === 'Y'){
+            clearAllCookies();
+
+            const encodedPsInfo = safeBase64Encode(JSON.stringify(res.data))
+            if (encodedPsInfo) {
+                // 미션 변경하기 했을때 쿠키에 데이터 새로 할당(새로고침해도 미션 유지되도록)
+                console.log(res.data)
+                setCookie('ps_info', encodedPsInfo,{ maxAge: 60 * 20 })
+            }
+        }
+
         videoTrigger.value = 0
 
+        // 브릿지에서 넘어왔을때
         if (fb) {
 
             const { fb, logId, ...rest } = route.query
 
+            // 브릿지페이지에서 넘어왔음을 알려주는 쿼리스트링 제거.
             router.replace({
                 query: rest,
             });
@@ -244,27 +218,16 @@ async function getData(logId?: string, fb = false, changeYn ?: string) {
                 startMission.value = 3
             }
 
-            router.replace({
-                query: rest,
-            });
         }
-        // if (route.query.logId) {
-        //     const { logId, ...rest } = route.query
-        //     router.replace({
-        //         query: rest,
-        //     })
-        // }
 
     } catch (error) {
         router.push({ path: '/fail', query: queryParams })
-
-        // alert(JSON.stringify(error))
-        console.log(error)
     }
 }
 
+//  현재 안쓰고 있음. 네이버 앱 이동시 이용했던 함수
 const openNaverAppForAndroid = () => {
-    const keyword = missionStore.data?.workKeyword
+    // const keyword = missionStore.data?.workKeyword
     // const type1FallbackUrl = 'https://m.naver.com/'
     // const type2FallbackUrl = `https://lightning.ai.kr/test.html`
     // const type3FallbackUrl = `https://m.search.naver.com/search.naver?sm=mob_hty.top&where=m&query=${keyword}`
@@ -273,10 +236,6 @@ const openNaverAppForAndroid = () => {
     // missionStore.data.extenalUrl
 
     // const targetLink = missionStore.data.extenalUrl
-    const bridgeDomain = missionStore.data?.bridgeDomain
-    const externalUrl = missionStore.data?.extenalUrl
-
-    const targetLink = `${bridgeDomain}?externalUrl=${encodeURIComponent(externalUrl)}`
 
     // const encodedUrl = encodeURIComponent(targetLink)
 
@@ -300,6 +259,10 @@ const openNaverAppForAndroid = () => {
     // startMission.value = 3
     // return
 
+    const bridgeDomain = missionStore.data?.bridgeDomain
+    const externalUrl = missionStore.data?.extenalUrl
+
+    const targetLink = `${bridgeDomain}?externalUrl=${encodeURIComponent(externalUrl)}`
     // 1️⃣ 유저가 클릭했을 때 앱 실행 시도안
     const link = document.createElement('a')
     link.href = targetLink
@@ -327,27 +290,54 @@ const openNaverAppForAndroid = () => {
     startMission.value = 3
 }
 
-const agent = ref('android')
 
-function openNaverAppForApple() {
+//  현재 안쓰고 있음. 네이버 앱 이동시 이용했던 함수
+
+// function openNaverAppForApple() {
+//     const bridgeDomain = missionStore.data.bridgeDomain
+//     // const bridgeDomain = "https://bridge-cleaner.chamominedev.workers.dev/"
+//     // const bridgeDomain = "https://starber.co.kr/"
+//     const targetLink = missionStore.data.extenalUrl
+
+//     // // return
+//     const link = document.createElement('a')
+//     link.href = targetLink
+//     link.rel = 'noopener noreferrer' // 보안 권장
+//     document.body.appendChild(link)
+//     link.click()
+//     document.body.removeChild(link)
+
+//     startMission.value = 3
+//     var appstoreUrl = 'http://itunes.apple.com/kr/app/id393499958?mt=8'
+//     const now = Date.now()
+//     // 2️⃣ 앱이 안 열리면 fallback (앱 미설치)
+//     setTimeout(() => {
+//         if (Date.now() - now < 2500) {
+//             // 앱이 실행되지 않았다고 판단되면
+//             const goToStore = window.confirm(
+//                 '네이버 앱이 설치되어 있지 않습니다.\n설치 페이지로 이동하시겠습니까?',
+//             )
+//             if (goToStore) {
+//                 window.location.href = appstoreUrl
+//             }
+//         }
+//     }, 2000)
+
+    
+
+// }
+
+function openBridgePage() {
 
     const bridgeDomain = missionStore.data.bridgeDomain
-    //   const bridgeDomain = "https://bridge-cleaner.chamominedev.workers.dev/"
+    // const bridgeDomain = "https://bridge-cleaner.chamominedev.workers.dev/"
     // const bridgeDomain = "https://starber.co.kr/"
     const externalUrl = missionStore.data.extenalUrl
 
     // 이미 브릿지에서 온 페이지인가
     const alreadyfb = !!route.query.fb
 
-
-    function base64UrlEncode(str: string) {
-        const b64 = btoa(
-            new TextEncoder()
-                .encode(str)
-                .reduce((acc, byte) => acc + String.fromCharCode(byte), ''),
-        );
-        return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
-    }
+    // copyCount 브릿지 다녀와서도 유지하기 위함
     const cp = missionStore.data?.screenType == '2' ? 0 : copyCnt.value;
 
     const urlSearchParams = new URL(window.location.href);
@@ -368,9 +358,8 @@ function openNaverAppForApple() {
 
     localStorage.clear();
     sessionStorage.clear();
-    document.cookie.split(";").forEach((c) => {
-        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-    });
+    clearAllCookies();
+
     // form 생성
     const form = document.createElement('form')
     form.method = 'POST'
@@ -563,61 +552,41 @@ watch(videoTrigger, async (idx) => {
         showSkipButton.value = false
     }
 })
-function safeBase64Decode(b64url: string) {
-  try {
-    const b64 = b64url
-      .replace(/-/g, '+')
-      .replace(/_/g, '/')
-      .padEnd(Math.ceil(b64url.length / 4) * 4, '=');
 
-    const binaryString = atob(b64);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    return new TextDecoder('utf-8').decode(bytes);
-  } catch (e) {
-    console.error('디코딩 에러:', e);
-    return null;
-  }
-}
+
+
 onMounted(() => {
-
     idleTimer.start(() => record('end'))
+    
+    // 쿠키로 받은 미션 데이터 가져오기
     const payload = getCookie('ps_info');
 
-    if (route.query.cp) {
-        copyCnt.setValue(Number(route.query.cp) || 0)
+    // 쿠키 미존재시
+    if(!payload) {
+        window.alert('유효하지 않은 미션입니다.')
+        router.push({ path: '/fail' })
+        return;
     }
+
     
     if (!missionStore.data) {
+        // 브릿지페이지에서 넘어왔을때 copyCnt 유지하기 위해 변수에 할당
+        if (route.query.cp) {
+            copyCnt.setValue(Number(route.query.cp) || 0)
+        }
         // 브릿지에서 넘어왔을때
         if (route.query.fb == 'true' || route.query.logId) {
             getData(route.query.logId as string, true, route.query.changeYn as string)
             return
-        } else {
-            if (payload) {
-
-                // 2. Base64 디코딩 및 한글 깨짐 방지 처리
-                const infoData = JSON.parse(safeBase64Decode(payload) as string);
-                missionStore.setData(infoData)
-             
-                // console.log("✅ 까서 나온 데이터:", infoData);
-            } else {
-                // 쿠키가 없을때
-                window.alert('유효하지 않은 미션입니다.')
-
-                router.push({ path: '/fail' })
-
-            }
-        }
+        } 
 
         // 페이지 최초 진입시, 쿠키에서 데이터 가져옴 
-
-        // missionStore.setData(payload);
+        // Base64 디코딩 및 store에 전역 변수 저장
+        const infoData = JSON.parse(safeBase64Decode(payload) as string);
+        missionStore.setData(infoData)
     }
 
-
+    // 홈화면 말고 미션화면으로 시작하기
     if (route.query.mission == 'true') {
         if (route.query?.screenType == '2') {
             startMission.value = 2
@@ -630,18 +599,6 @@ onMounted(() => {
         videoTrigger.value = 0
     }
 
-    // const userAgent = navigator.userAgent.toLowerCase() //userAgent 문자열 값 받아오기
-
-    // if (userAgent.indexOf('android') > -1) {
-    //     //안드로이드일 때 실행할 x동작
-    //     agent.value = 'android'
-    // } else if (
-    //     userAgent.indexOf('iphone') > -1 ||
-    //     userAgent.indexOf('ipad') > -1 ||
-    //     userAgent.indexOf('ipod') > -1
-    // ) {
-    //     agent.value = 'apple'
-    // }
 })
 
 onBeforeUnmount(() => {
@@ -812,7 +769,7 @@ onBeforeUnmount(() => {
             () => {
                 if (missionStore.data?.screenType == '2') {
                     // startMission = 2;
-                    openNaverAppForApple()
+                    openBridgePage()
                 } else {
                     startMission = 1
                 }

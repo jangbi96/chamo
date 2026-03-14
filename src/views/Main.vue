@@ -554,39 +554,39 @@ watch(videoTrigger, async (idx) => {
 })
 
 
-
 onMounted(() => {
+
     idleTimer.start(() => record('end'))
-    
-    // 쿠키로 받은 미션 데이터 가져오기
     const payload = getCookie('ps_info');
 
-    // 쿠키 미존재시
-    if(!payload) {
-        window.alert('유효하지 않은 미션입니다.')
-        router.push({ path: '/fail' })
-        return;
+    if (route.query.cp) {
+        copyCnt.setValue(Number(route.query.cp) || 0)
     }
 
-    
     if (!missionStore.data) {
-        // 브릿지페이지에서 넘어왔을때 copyCnt 유지하기 위해 변수에 할당
-        if (route.query.cp) {
-            copyCnt.setValue(Number(route.query.cp) || 0)
-        }
         // 브릿지에서 넘어왔을때
         if (route.query.fb == 'true' || route.query.logId) {
             getData(route.query.logId as string, true, route.query.changeYn as string)
             return
-        } 
+        } else {
+            if (payload) {
 
-        // 페이지 최초 진입시, 쿠키에서 데이터 가져옴 
-        // Base64 디코딩 및 store에 전역 변수 저장
-        const infoData = JSON.parse(safeBase64Decode(payload) as string);
-        missionStore.setData(infoData)
+                // 2. Base64 디코딩 및 한글 깨짐 방지 처리
+                const infoData = JSON.parse(safeBase64Decode(payload) as string);
+                missionStore.setData(infoData)
+            
+                // console.log("✅ 까서 나온 데이터:", infoData);
+            } else {
+                // 쿠키가 없을때
+                window.alert('유효하지 않은 미션입니다.')
+
+                router.push({ path: '/fail' })
+
+            }
+        }
     }
 
-    // 홈화면 말고 미션화면으로 시작하기
+
     if (route.query.mission == 'true') {
         if (route.query?.screenType == '2') {
             startMission.value = 2
@@ -600,6 +600,51 @@ onMounted(() => {
     }
 
 })
+// onMounted(() => {
+//     idleTimer.start(() => record('end'))
+    
+//     // 쿠키로 받은 미션 데이터 가져오기
+//     const payload = getCookie('ps_info');
+
+//     // 쿠키 미존재시
+//     if(!payload) {
+//         window.alert('유효하지 않은 미션입니다.')
+//         router.push({ path: '/fail' })
+//         return;
+//     }
+
+    
+//     if (!missionStore.data) {
+//         // 브릿지페이지에서 넘어왔을때 copyCnt 유지하기 위해 변수에 할당
+//         if (route.query.cp) {
+//             copyCnt.setValue(Number(route.query.cp) || 0)
+//         }
+//         // 브릿지에서 넘어왔을때
+//         if (route.query.fb == 'true' || route.query.logId) {
+//             getData(route.query.logId as string, true, route.query.changeYn as string)
+//             return
+//         } 
+
+//         // 페이지 최초 진입시, 쿠키에서 데이터 가져옴 
+//         // Base64 디코딩 및 store에 전역 변수 저장
+//         const infoData = JSON.parse(safeBase64Decode(payload) as string);
+//         missionStore.setData(infoData)
+//     }
+
+//     // 홈화면 말고 미션화면으로 시작하기
+//     if (route.query.mission == 'true') {
+//         if (route.query?.screenType == '2') {
+//             startMission.value = 2
+//         } else {
+//             startMission.value = 1
+//         }
+//     }
+
+//     if (route.query.fromfail == 'true') {
+//         videoTrigger.value = 0
+//     }
+
+// })
 
 onBeforeUnmount(() => {
     idleTimer.stop()

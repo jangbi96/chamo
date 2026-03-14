@@ -377,7 +377,7 @@ onMounted(() => {
                 font-size: 14px;
                 line-height: 1.1;
                 margin-bottom: 3px;
-                word-break: keep-all;
+                word-break: break-all;
             }
 
             span {
@@ -508,5 +508,3 @@ onMounted(() => {
 }
 </style>
 
-function onbeforeMounted(arg0: () => void) { throw new Error('Function not implemented.') } function
-onBeforeMounted(arg0: () => void) { throw new Error('Function not implemented.') }
